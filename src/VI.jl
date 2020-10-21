@@ -262,7 +262,7 @@ function coreVI(logl::Function, gradlogl::Function, μarray::Array{Array{Float64
         if Stest > 0
             @printf("\t iteration = %d, elbotest = %5.3f \t elbotrain = %5.3f\n", x.iteration, history_elbo_Ztest[end], history_elbo_Ztrain[end])
         else
-            @printf("\t iteration = %d,elbotrain = %5.3f\n", x.iteration, history_elbo_Ztrain[end])
+            @printf("\t iteration = %d, elbotrain = %5.3f\n", x.iteration, history_elbo_Ztrain[end])
         end
 
         if Stest > 0
