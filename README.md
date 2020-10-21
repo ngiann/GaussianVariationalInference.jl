@@ -7,19 +7,27 @@ Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](http
 **This work in progress, documentation and more functionality will be added soon**
 
 
+## What is this package about
+
+This package implements variational inference using the re-parametrisation trick.
+The work was published in the above publication. 
+Of course the method has been popularised by the works ...
+
+
 ## What does the package do
 
 Recommended for problems with relatively few parameters, e.g. 2-20 parameters.
 
 ## How to use the package
 
-## Examples
+The package is fairly easy to use. The only function relevant to the user is called `VI`.
 
-### Bayesian linear regression
+
+## Examples
 
 ### Fitting a power law
 
-### Neural network with noisy inputs
+### Integrating out hyperparameters in a Gaussian process
 
 #### Monitoring "overfitting"
 
