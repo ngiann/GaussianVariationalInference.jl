@@ -1,8 +1,16 @@
+# We need PyPlot to plot the posterior approximation 
+
 using PyPlot
+
+
+# Define model and parameters responsible for generating the data below
+
+trueparameter = [0.75;0.4]
 
 decayfunction(x,p) = p[1] .+ exp.(-p[2]*x)
 
-trueparameter = [0.75;0.4]
+
+# Generate some data
 
 N = 12
 
@@ -12,6 +20,7 @@ x = rand(N)*7.0
 
 y = decayfunction(x, trueparameter) .+ σ*randn(N)
 
+
 # define log-likelihood function
 
 decaylogpdf(x, y, p) = logpdf(MvNormal(decayfunction(x, p), σ), y)
@@ -20,6 +29,7 @@ decaylogpdf(x, y, p) = logpdf(MvNormal(decayfunction(x, p), σ), y)
 # Approximate posterior with Gaussian
 
 posterior, = VI( p->decaylogpdf(x,y,p), [randn(2) for i=1:5], S = 100, iterations = 50, show_every=1)
+
 
 # Plot data
 
@@ -48,6 +58,12 @@ xlabel("p1")
 
 ylabel("p2")
 
+
+# Plot our Gaussian approximation
+
 plot_ellipse(posterior)
+
+
+# Add the true parameter on the plot
 
 plot(trueparameter[1], trueparameter[2], "ro")
