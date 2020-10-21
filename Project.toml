@@ -1,6 +1,6 @@
 name = "ApproximateVI"
 uuid = "e67a2193-b68a-469d-be77-24baf3975c82"
-authors = ["ngiann <ngiann@gmail.com> and contributors"]
+authors = ["Nikos Gianniotis <ngiann@gmail.com>"]
 version = "0.1.0"
 
 [deps]
