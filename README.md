@@ -16,6 +16,26 @@ Of course the method has been popularised by the works ...
 
 ## What does the package do
 
+The package offer function `VI`. This function approximates the posterior parameter distribution
+with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by minimizing the expected lower bound:
+
+∫ q(θ) log p(x,θ) dθ + ℋ[q]
+
+The above integral is approximated with a monte carlo average of S samples:
+
+1/S log p(x,θₛ) dθ + ℋ[q]
+
+Using the reparametrisation trick, we re-introduce the variational parameters that we need top optimise:
+
+1/S log p(x,μ + √Σ zₛ) dθ + ℋ[q]
+
+where √Σ is a matrix root of Σ (e.g. Cholesky "root") and zₛ∼𝜨(0,I).
+
+A difference to other expositions, as described in the [[paper]](https://arxiv.org/pdf/1906.04507.pdf), is the fact
+that instead of repeatedly drawing new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
+and kept fixed throughout the execution of the algorithm. This avoids the difficulties of working with a noisy gradient at the 
+expense of risking overfitting to the samples zₛ that happen to be chosen. A mechanism for monitoring potential overfitting is described 
+
 Recommended for problems with relatively few parameters, e.g. 2-20 parameters.
 
 ## How to use the package
