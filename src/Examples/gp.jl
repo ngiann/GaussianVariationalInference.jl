@@ -41,17 +41,17 @@ postθ, = VI( θ ->  logp(θ; x=x, y=y), [randn(3)*2 for i=1:10], S = 200, itera
 # Draw samples from posterior and plot
 
 for i in 1:3
-    
+
     # draw hyperparameter sample from approximating Gaussian distribution
     θ = rand(postθ)
-    
+
     # instantiate kernel
     sample_kernel = ScaledKernel(transform(Matern52Kernel(), ScaleTransform(exp(θ[1]))),exp(θ[2]))
-    
+
     # intantiate kernel, GP object and calculate posterior mean and covariance for the training data x, y generated above
     f = GP(sample_kernel)
-    p_fx = posterior(f(x, exp(θ[3])), y)
-    μ, Σ = mean_and_cov(p_fx, xtest)
+    p_fx = AbstractGPs.posterior(f(x, exp(θ[3])), y)
+    μ, Σ = AbstractGPs.mean_and_cov(p_fx, xtest)
 
     figure()
     plot(x, y, "ko",label="Train Data")
