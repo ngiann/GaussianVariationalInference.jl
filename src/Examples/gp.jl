@@ -1,3 +1,7 @@
+#####################################################################
+# Example: integrate out the hyperparameters of a Gaussian process. #
+#####################################################################
+
 # Extra packages needed for this example
 
 using AbstractGPs, PyPlot, Printf, LinearAlgebra
