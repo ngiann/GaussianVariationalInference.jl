@@ -38,14 +38,35 @@ This avoids the difficulty of working with a noisy gradient and allows the use o
 
 ## How to use the package
 
-The package is fairly easy to use. The only function of interest to the user is `VI`. The user needs to provide a function that codes the joint log-likelihood function of the model and possibly its gradient.
+The package is fairly easy to use. The only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
+
+Consider, approximating a target density given by a three-component mixture model:
+
+```
+using PyPlot # Necessary for this example
+
+# Define means for three-component Gaussian mixture model
+# All components are implicitly equally weighted and have unit covariance
+μ = [zeros(2), [2.5; 0.0], [-2.5; 0.0]]
+
+# Define log-likelihood
+logp(θ) = log(exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[3].-θ).^2)))
+```
+
+The target posterior looks like:
+
+We will know approximate it with a Gaussian density. We need to pass to ```VI``` the log-likelihood function, a starting point for the mean of the approximate Gaussian posterior, as well as the number of fixed samples and the number of iterations we want to optimise the lower bound for:
+
+```
+posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
+```
 
 
-## Examples
+
+## Further Examples
+All examples can be found in the ```src/Examples``` directory.
 
 ### Fitting a power law
-
-### Integrating out hyperparameters in a Gaussian process
 
 #### Monitoring "overfitting"
 
