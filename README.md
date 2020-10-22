@@ -64,7 +64,7 @@ We also plot the approximating posterior q(θ) as a blue ellipse:
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
-## Further Examples
+## Further examples
 More examples can be found in the [/src/Examples](/src/Examples) folder.
 
 
