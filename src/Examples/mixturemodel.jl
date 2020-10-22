@@ -21,4 +21,4 @@ axis("equal")
 posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 
 # Plot our approximation
-plot_ellipse(posterior)
+ApproximateVI.plot_ellipse(posterior)

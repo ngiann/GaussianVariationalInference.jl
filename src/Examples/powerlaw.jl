@@ -2,7 +2,7 @@
 # Example: approximate posterior of power law described by two parameters #
 ###########################################################################
 
-# We need PyPlot to plot the posterior approximation 
+# We need PyPlot to plot the posterior approximation
 
 using PyPlot
 
@@ -65,7 +65,7 @@ ylabel("p2")
 
 # Plot our Gaussian approximation
 
-plot_ellipse(posterior)
+ApproximateVI.plot_ellipse(posterior)
 
 
 # Add the true parameter on the plot
