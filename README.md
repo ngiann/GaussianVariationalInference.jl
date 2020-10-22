@@ -33,8 +33,7 @@ Using the reparametrisation trick, we re-introduce the variational parameters th
 where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 Contrary to other flavours of the method that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
 instead and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
-This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like LBFGS. This comes however at the expense of risking overfitting to the samples zₛ that happened to be chosen. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation.
-
+This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like LBFGS. This comes however at the expense of risking overfitting to the samples zₛ that happened to be chosen. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that attempts to address this limitation has been presented [here](https://arxiv.org/abs/1901.04791). 
 
 ## How to use the package
 
