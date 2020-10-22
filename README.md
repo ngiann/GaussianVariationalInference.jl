@@ -38,7 +38,7 @@ This avoids the difficulty of working with a noisy gradient and allows the use o
 
 ## How to use the package
 
-The package is fairly easy to use. The only function of interest to the user is `VI`.
+The package is fairly easy to use. The only function of interest to the user is `VI`. The user needs to provide a function that codes the joint log-likelihood function of the model and possibly its gradient.
 
 
 ## Examples
