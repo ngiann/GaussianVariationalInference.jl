@@ -51,10 +51,6 @@ using PyPlot # Necessary for this example
 logp(θ) = log(exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[3].-θ).^2)))
 ```
 
-The target posterior looks like:
-
-![image](docs/images/examplemixturemodel.png)
-
 We will now approximate it with a Gaussian density. We need to pass to ```VI``` the log-likelihood function, a starting point for the mean of the approximate Gaussian posterior, as well as the number of fixed samples and the number of iterations we want to optimise the lower bound for:
 
 ```
@@ -63,7 +59,8 @@ posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 
 This returns two outputs: the first one is of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)) and is the approximating posterior  q(θ). The second output is the approximate lower bound of type ```Float64```.
 
-We plot the approximating posterior q(θ) on top of the target density as a blue ellipse:
+Below we plot as contour plot the target unnormalised posterior distribution.
+We also plot the approximating posterior q(θ) as a blue ellipse:
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
