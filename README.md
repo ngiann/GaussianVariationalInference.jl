@@ -67,7 +67,4 @@ We also plot the approximating posterior q(θ) as a blue ellipse:
 ## Further Examples
 More examples can be found in the [/src/Examples](/src/Examples) folder.
 
-### Fitting a power law
-
-#### Monitoring "overfitting"
 
