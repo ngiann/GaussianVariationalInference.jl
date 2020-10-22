@@ -10,7 +10,7 @@ Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](http
 ## What is this package about
 
 This package implements variational inference using the re-parametrisation trick.
-The work was published in the above publication. 
+The work was published in the above [publication](https://arxiv.org/pdf/1906.04507.pdf). 
 Of course the method has been popularised by the works ...
 
 
@@ -31,12 +31,11 @@ Using the reparametrisation trick, we re-introduce the variational parameters th
 
 where √Σ is a matrix root of Σ (e.g. Cholesky "root") and zₛ∼𝜨(0,I).
 
-A difference to other expositions, as described in the [[paper]](https://arxiv.org/pdf/1906.04507.pdf), is the fact
+A difference to other expositions, is the fact
 that instead of repeatedly drawing new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
-and kept fixed throughout the execution of the algorithm. This avoids the difficulties of working with a noisy gradient at the 
-expense of risking overfitting to the samples zₛ that happen to be chosen. A mechanism for monitoring potential overfitting is described 
+and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf).
+This avoids the difficulties of working with a noisy gradient and use optimisers like LBFGS, at the expense of risking overfitting to the samples zₛ that happen to be chosen. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf). Because of fixing the sample, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation.
 
-Recommended for problems with relatively few parameters, e.g. 2-20 parameters.
 
 ## How to use the package
 
