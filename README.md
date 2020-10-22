@@ -38,7 +38,7 @@ This avoids the difficulty of working with a noisy gradient and allows the use o
 
 ## How to use the package
 
-The package is fairly easy to use. The only function relevant to the user is called `VI`.
+The package is fairly easy to use. The only function of interest to the user is `VI`.
 
 
 ## Examples
