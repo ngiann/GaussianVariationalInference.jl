@@ -23,11 +23,10 @@ Returns Gaussian posterior inferred via approximate VI and the log evidence
 
 More arguments are explained in the README.md file.
 
-# Examples
-
+# Example
 
 ```julia-repl
-# Example 1: infer posterior of Bayesian linear regression
+# infer posterior of Bayesian linear regression, compare to exact result
 julia> using LinearAlgebra, Distributions
 julia> D = 4; X = randn(D, 1000); W = randn(D); β = 0.3; α = 1.0;
 julia> Y = vec(W'*X); Y += randn(size(Y))/sqrt(β);
