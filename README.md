@@ -68,7 +68,7 @@ We plot the approximating posterior q(θ) on top of the target density as a blue
 
 
 ## Further Examples
-All examples can be found in the ```src/Examples``` directory.
+All examples can be found in the [/src/Examples](/src/Examples) directory.
 
 ### Fitting a power law
 
