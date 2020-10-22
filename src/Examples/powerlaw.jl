@@ -1,3 +1,7 @@
+###########################################################################
+# Example: approximate posterior of power law described by two parameters #
+###########################################################################
+
 # We need PyPlot to plot the posterior approximation 
 
 using PyPlot

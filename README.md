@@ -10,9 +10,9 @@ Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](http
 ## What is this package about
 
 This package implements variational inference using the re-parametrisation trick.
-The work was published in the above [publication](https://arxiv.org/pdf/1906.04507.pdf). 
-Of course the method has been widely popularised by the works [Doubly Stochastic Variational Bayes for non-Conjugate Inference](http://proceedings.mlr.press/v32/titsias14.pdf) and [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114).
-The method has indepedently appeared eariler in [Fixed-Form Variational Posterior Approximation through Stochastic Linear Regression](https://arxiv.org/abs/1206.6679) and later in [A comparison of variational approximations for fast inference in mixed logit models](https://link.springer.com/article/10.1007%2Fs00180-015-0638-y).
+The work was independently developed and published [here](https://doi.org/10.1007/s10044-015-0496-9). 
+Of course, the method has been widely popularised by the works [Doubly Stochastic Variational Bayes for non-Conjugate Inference](http://proceedings.mlr.press/v32/titsias14.pdf) and [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114).
+The method has indepedently appeared earlier in [Fixed-Form Variational Posterior Approximation through Stochastic Linear Regression](https://arxiv.org/abs/1206.6679) and later in [A comparison of variational approximations for fast inference in mixed logit models](https://link.springer.com/article/10.1007%2Fs00180-015-0638-y) and very likely in other publications too.
 
 
 ## What does the package do
@@ -28,13 +28,11 @@ The above integral is approximated with a monte carlo average of S samples:
 
 Using the reparametrisation trick, we re-introduce the variational parameters that we need top optimise:
 
-1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q]
+1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 
-where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
-Contrary to other flavours of the method that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
+Contrary to other flavours of the method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
 instead and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
-This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like LBFGS. This comes however at the expense of risking overfitting to the samples zₛ that happened to be chosen. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation.
-
+This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS). However, this comes at the expense of risking overfitting to the samples zₛ that happened to be drawn. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that attempts to address this limitation has been presented [here](https://arxiv.org/abs/1901.04791). 
 
 ## How to use the package
 
@@ -53,25 +51,20 @@ using PyPlot # Necessary for this example
 logp(θ) = log(exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[3].-θ).^2)))
 ```
 
-The target posterior looks like:
-![image](docs/images/examplemixturemodel.png)
-
-We will know approximate it with a Gaussian density. We need to pass to ```VI``` the log-likelihood function, a starting point for the mean of the approximate Gaussian posterior, as well as the number of fixed samples and the number of iterations we want to optimise the lower bound for:
+We will now approximate it with a Gaussian density. We need to pass to ```VI``` the log-likelihood function, a starting point for the mean of the approximate Gaussian posterior, as well as the number of fixed samples and the number of iterations we want to optimise the lower bound for:
 
 ```
 posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 ```
 
-This returns two outputs, the first one is of type ```MvNormal``` and is the approximating posterior  q(θ) and the second one is the approximate lower bound.
+This returns two outputs: the first one is of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)) and is the approximating posterior  q(θ). The second output is the approximate lower bound of type ```Float64```.
 
-We plot the approximating posterior q(θ) on top of the target density as a blue ellipse:
+Below we plot as contour plot the target unnormalised posterior distribution.
+We also plot the approximating posterior q(θ) as a blue ellipse:
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
-## Further Examples
-All examples can be found in the ```src/Examples``` directory.
+## Further examples
+More examples can be found in the [/src/Examples](/src/Examples) folder.
 
-### Fitting a power law
-
-#### Monitoring "overfitting"
 

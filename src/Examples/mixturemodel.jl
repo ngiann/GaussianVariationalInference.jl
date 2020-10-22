@@ -1,3 +1,7 @@
+#######################################################################
+# Example: approximate density given by mixture model with a Gaussian #
+#######################################################################
+
 using PyPlot
 
 # Define means for three-component Gaussian mixture model
