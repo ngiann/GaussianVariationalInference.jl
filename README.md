@@ -61,6 +61,10 @@ We will know approximate it with a Gaussian density. We need to pass to ```VI```
 ```
 posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 ```
+
+This returns two outputs, the first one is of type ```MvNormal``` and is the approximating posterior  q(θ) and the second one is the approximate lower bound.
+
+We plot the approximating posterior q(θ) on top of the target density as a blue ellipse:
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
