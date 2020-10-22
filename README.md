@@ -10,7 +10,7 @@ Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](http
 ## What is this package about
 
 This package implements variational inference using the re-parametrisation trick.
-The work was independently developed and published [[here]](https://doi.org/10.1007/s10044-015-0496-9). 
+The work was independently developed and published [here](https://doi.org/10.1007/s10044-015-0496-9). 
 Of course, the method has been widely popularised by the works [Doubly Stochastic Variational Bayes for non-Conjugate Inference](http://proceedings.mlr.press/v32/titsias14.pdf) and [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114).
 The method has indepedently appeared eariler in [Fixed-Form Variational Posterior Approximation through Stochastic Linear Regression](https://arxiv.org/abs/1206.6679) and later in [A comparison of variational approximations for fast inference in mixed logit models](https://link.springer.com/article/10.1007%2Fs00180-015-0638-y).
 
