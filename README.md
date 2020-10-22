@@ -24,11 +24,11 @@ with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by minimizing the expected lower bound:
 
 The above integral is approximated with a monte carlo average of S samples:
 
-1/S log p(x,θₛ) dθ + ℋ[q]
+1/S 𝜮ₛ log p(x,θₛ) dθ + ℋ[q]
 
 Using the reparametrisation trick, we re-introduce the variational parameters that we need top optimise:
 
-1/S log p(x,μ + √Σ zₛ) dθ + ℋ[q]
+1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q]
 
 where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 Contrary to other flavours of the method that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
