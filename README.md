@@ -61,6 +61,7 @@ This returns two outputs: the first one is of type ```MvNormal``` (see [Distribu
 
 Below we plot as contour plot the target unnormalised posterior distribution.
 We also plot the approximating posterior q(θ) as a blue ellipse:
+
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
