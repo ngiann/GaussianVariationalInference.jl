@@ -26,7 +26,7 @@ The above integral is approximated with a monte carlo average of S samples:
 
 1/S 𝜮ₛ log p(x,θₛ) dθ + ℋ[q]
 
-Using the reparametrisation trick, we re-introduce the variational parameters that we need top optimise:
+Using the reparametrisation trick, we re-introduce the variational parameters that we need to optimise:
 
 1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 
