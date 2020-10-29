@@ -295,7 +295,7 @@ function coreVI(logl::Function, gradlogl::Function, μarray::Array{Array{Float64
     #----------------------------------------------------
 
     # HACK
-    copyoptim = Optim.Options(extended_trace = true, store_trace = false, show_trace = false, iterations = iterations, callback = monitor)
+    copyoptim = Optim.Options(extended_trace = false, store_trace = false, show_trace = true, show_every=show_every, iterations = iterations)#, callback = monitor)
 
     result = Optim.optimize(minauxiliary, gradhelper, bestinitialsolution, optimiser, copyoptim)
 
