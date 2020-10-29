@@ -57,7 +57,7 @@ We will now approximate it with a Gaussian density. We need to pass to ```VI``` 
 posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 ```
 
-This returns two outputs: the first one is of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)) and is the approximating posterior  q(θ). The second output is the approximate lower bound of type ```Float64```.
+This returns two outputs: the first one is the approximating posterior q(θ) of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)). The second output is the approximate lower bound of type ```Float64```.
 
 Below we plot as contour plot the target unnormalised posterior distribution.
 We also plot the approximating posterior q(θ) as a blue ellipse:
