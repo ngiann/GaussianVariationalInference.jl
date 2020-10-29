@@ -26,7 +26,7 @@ The above integral is approximated with a monte carlo average of S samples:
 
 1/S 𝜮ₛ log p(x,θₛ) dθ + ℋ[q]
 
-Using the reparametrisation trick, we re-introduce the variational parameters that we need top optimise:
+Using the reparametrisation trick, we re-introduce the variational parameters that we need to optimise:
 
 1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 
@@ -57,10 +57,11 @@ We will now approximate it with a Gaussian density. We need to pass to ```VI``` 
 posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
 ```
 
-This returns two outputs: the first one is of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)) and is the approximating posterior  q(θ). The second output is the approximate lower bound of type ```Float64```.
+This returns two outputs: the first one is the approximating posterior q(θ) of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)). The second output is the approximate lower bound of type ```Float64```.
 
 Below we plot as contour plot the target unnormalised posterior distribution.
 We also plot the approximating posterior q(θ) as a blue ellipse:
+
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
