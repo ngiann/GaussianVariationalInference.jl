@@ -1,7 +1,7 @@
 name = "ApproximateVI"
 uuid = "e67a2193-b68a-469d-be77-24baf3975c82"
 authors = ["Nikos Gianniotis <ngiann@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
