@@ -4,7 +4,7 @@
 
 # We need PyPlot to plot the posterior approximation
 
-using PyPlot
+using PyPlot, Distributions
 
 
 # Define model and parameters responsible for generating the data below
