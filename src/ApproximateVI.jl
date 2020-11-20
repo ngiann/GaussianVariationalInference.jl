@@ -8,12 +8,13 @@ module ApproximateVI
 
     using Distributions, Statistics
 
-    export VI
+    export VI, VIdiag
 
     include("util/plot_ellipse.jl")
     include("util/util.jl")
     include("util/entropy.jl")
     include("VI.jl")
+    include("VIdiag.jl")
 
     gr()
 end
