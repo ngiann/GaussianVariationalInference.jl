@@ -306,8 +306,6 @@ function coreVI(logl::Function, gradlogl::Function, μarray::Array{Array{Float64
     # Return results
     #----------------------------------------------------
 
-    negativelogevidence = result.minimum
-
     Σopt = getcov(Copt)
 
     return MvNormal(μopt, Σopt), elbo(μopt, Copt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
