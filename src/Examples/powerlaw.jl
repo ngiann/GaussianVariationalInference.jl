@@ -4,8 +4,12 @@
 
 # We need PyPlot to plot the posterior approximation
 
-using PyPlot, Distributions
+using PyPlot, Distributions, Random
 
+# ensure repeatability
+seed = 101
+
+rg = MersenneTwister(seed)
 
 # Define model and parameters responsible for generating the data below
 
@@ -20,9 +24,9 @@ N = 12
 
 σ = 0.075
 
-x = rand(N)*7.0
+x = rand(rg, N)*7.0
 
-y = decayfunction(x, trueparameter) .+ σ*randn(N)
+y = decayfunction(x, trueparameter) .+ σ*randn(rg, N)
 
 
 # define log-likelihood function
@@ -32,7 +36,7 @@ decaylogpdf(x, y, p) = logpdf(MvNormal(decayfunction(x, p), σ), y)
 
 # Approximate posterior with Gaussian
 
-posterior, = VI( p->decaylogpdf(x,y,p), [randn(2) for i=1:5], S = 100, iterations = 50, show_every=1)
+posterior, = VI( p->decaylogpdf(x,y,p), [randn(rg, 2) for i=1:5], S = 100, iterations = 50, show_every=1)
 
 
 # Plot data
