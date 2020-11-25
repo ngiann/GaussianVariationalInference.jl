@@ -1,14 +1,8 @@
-function entropy(Σ::AbstractArray)
+entropy(C::Array{Float64, 2}) = 0.5*logdet(2*π*ℯ*C*C')
 
-    0.5*logdet(2*π*ℯ*Σ)
+entropy(C::Array{Float64, 1}) = 0.5*sum(log.(C.^2)) + 0.5*log(2*π*ℯ) * length(C)
 
-end
-
-function entropy(σ::Real)
-
-    0.5*log(2*π*ℯ*σ^2)
-
-end
+entropy(σ::Real) = 0.5*log(2*π*ℯ*σ^2)
 
 
 
@@ -17,7 +11,7 @@ function entropy_sqrt_eigenvalues(Esqrt)
 
     local D = length(Esqrt)
 
-    local H = 0.5*D*log(2*π*2.7182818)
+    local H = 0.5*D*log(2*π*ℯ)
 
     for esqrt in Esqrt
         H += 0.5*log(esqrt^2)

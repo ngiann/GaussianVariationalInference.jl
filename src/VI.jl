@@ -171,15 +171,7 @@ function coreVI(logl::Function, gradlogl::Function, μarray::Array{Array{Float64
     function elbo(μ, C, Z)
     #----------------------------------------------------
 
-        local Σ     = getcov(C)
-
-        local Σroot = getcovroot(C)
-
-        local l     = mean(map(z -> logl(μ .+ Σroot*z), Z))
-
-        local H     = entropy(Σ)
-
-        return l + H
+        mean(map(z -> logl(μ .+ C*z), Z)) + entropy(C)
 
     end
 
@@ -190,7 +182,7 @@ function coreVI(logl::Function, gradlogl::Function, μarray::Array{Array{Float64
 
         local Σroot = getcovroot(C)
         local gradC = (Σroot\I)' # entropy contribution
-        local gradμ = zeros(D)
+        local gradμ = zeros(eltype(μ), D)
         local S     = length(Z)
 
         for s=1:S

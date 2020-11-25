@@ -118,17 +118,7 @@ function coreVIdiag(logl::Function, gradlogl::Function, μ::Array{Float64,1}, Σ
     function elbo(μ, Cdiag, Z)
     #----------------------------------------------------
 
-        @assert(length(μ) == length(Cdiag))
-
-        local l = mean(map(z -> logl(μ .+ Cdiag.*z), Z))
-
-        local H = 0.5*sum(log.(Cdiag.^2)) + 0.5*log(2*π*ℯ) * length(Cdiag)
-
-        #local Σ = Matrix(Diagonal(getcov(Cdiag)))
-
-        #local H = 0.5*logdet(2*π*ℯ*Σ)
-
-        return l + H
+        mean(map(z -> logl(μ .+ Cdiag.*z), Z)) + entropy(Cdiag)
 
     end
 
