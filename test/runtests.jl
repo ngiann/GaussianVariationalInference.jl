@@ -1,6 +1,8 @@
 using ApproximateVI
 using Test
 
+include("testentropy.jl")
+
 @testset "ApproximateVI.jl" begin
-    # Write your tests here.
+    testentropy()
 end

@@ -1,5 +1,3 @@
-using Printf
-
 # Code here taken from
 # http://www.visiondummy.com/2014/04/draw-error-ellipse-representing-covariance-matrix/
 

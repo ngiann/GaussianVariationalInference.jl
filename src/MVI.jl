@@ -1,99 +1,21 @@
-"""
-    MVI(logl; S = 100, D = D, maxiter = 1)
+function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S = 100, optimiser = Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-    MVI(logl, gradlogl; S = 100, D = D, maxiter = 1)
+    D = length(mean(LAposteriors[1]))
 
-    MVI(logl, gradlogl, μ; S = 100, D = D, maxiter = 1)
-
-    MVI(logl, gradlogl, μ, Σ; S = 100, D = D, maxiter = 1)
-
-Returns mean and covariance of approximate Gaussian posterior inferred via MVI
-
-# Arguments
-
-- logl is a function that expresses the joint log-likelihood
-- gradlogl calculates the gradient for logl. If not given, it will be obtained via automatic differentiation.
-- S is the number of drawn samples that approximate the lower bound integral
-- D is the dimension of the parameter
+    @assert(D == size(cov(LAposteriors[1]), 1) == size(cov(LAposteriors[1]), 2))
 
 
-# Examples
-```julia-repl
-# Trivial example: approximate Gaussian with Gaussian
-julia> MVI(x->logpdf(MvNormal(zeros(2), [1.0 0.3;0.3 1.0]),x); S = 200, D = 2, maxiter = 50)
-([0.0848098504274756, 0.08305942802203821], [0.8922994469183307 0.27631010716184484; 0.27631010716184484 0.9603766726205719])
-```
-"""
-function MVI(logl::Function; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
 
-    gradlogl(x)   = ForwardDiff.gradient(logl, x)
+    @printf("Running MVI with S=%d, D=%d for %d iterations\n", S, D, iterations)
 
-    gradlogl(v,x) = ForwardDiff.gradient!(v, logl, x)
-
-    MVI(logl, gradlogl; S = S, D = D, maxiter = maxiter, optimiser = optimiser)
-
-end
-
-
-##############################################################
-function MVI(logl::Function, gradlogl::Function; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
-##############################################################
-
-    μLA, ΣLA = laplace(randn(D), logl, gradlogl)
-
-    MVI(logl, gradlogl, μLA, ΣLA; S = S, D = D, maxiter = maxiter, optimiser = optimiser)
-
-end
-
-
-##############################################################
-function MVI(logl::Function, gradlogl::Function, μ::Array{Float64,1}; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
-##############################################################
-
-    μLA, ΣLA = laplace(μ, logl, gradlogl)
-
-    MVI(logl, gradlogl, μLA, ΣLA; S = S, D = D, maxiter = maxiter, optimiser = optimiser)
-
-end
-
-
-##############################################################
-function MVI(logl::Function, μ::Array{Float64,1}; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
-##############################################################
-
-    gradlogl(x)   = ForwardDiff.gradient(logl, x)
-
-    gradlogl(v,x) = ForwardDiff.gradient!(v, logl, x)
-
-    μLA, ΣLA = laplace(μ, logl, gradlogl)
-
-    MVI(logl, gradlogl, μLA, ΣLA; S = S, D = D, maxiter = maxiter, optimiser = optimiser)
-
-end
-
-
-##################################################################
-function MVI(logl::Function, gradlogl::Function, μ, Σ; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
-##################################################################
-
-    coreMVI(logl, gradlogl, μ, Σ; S = S, D = D, maxiter = maxiter, optimiser = optimiser)
-
-end
-
-
-##################################################################
-function coreMVI(logl::Function, gradlogl::Function, μ, Σ; S = 100, D = D, maxiter = 1, optimiser = Optim.LBFGS())
-##################################################################
-
-    @printf("Running MVI with S=%d, D=%d for %d iterations\n", S, D, maxiter)
-
-    V, Esqrt = eigendecomposition(Σ)
 
     #----------------------------------------------------
     # generate latent variables
     #----------------------------------------------------
 
-    Ztrain = generatelatentZ(S = S, D = D)
+    Ztrain = generatelatentZ(S = S, D = D, seed = seed)
+
+    Ztest  = generatelatentZ(S = Stest, D = D, seed = seed+1)
 
 
     #----------------------------------------------------
@@ -112,37 +34,39 @@ function coreMVI(logl::Function, gradlogl::Function, μ, Σ; S = 100, D = D, max
 
 
     #----------------------------------------------------
-    function minauxiliary(param)
+    function minauxiliary(V, param)
     #----------------------------------------------------
 
         local μ, Esqrt = unpack(param)
 
-        return -1.0 * elbo(μ, Esqrt, Ztrain)
+        return -1.0 * elbo(μ, Esqrt, V, Ztrain)
 
     end
 
 
     #----------------------------------------------------
-    function minauxiliary_grad(param)
+    function minauxiliary_grad(V, param)
     #----------------------------------------------------
 
         local μ, Esqrt = unpack(param)
 
-        return -1.0 * elbo_grad(μ, Esqrt, Ztrain)
+        return -1.0 * elbo_grad(μ, Esqrt, V, Ztrain)
 
     end
 
 
     #----------------------------------------------------
-    function getcov(Esqrt)
+    function getcov(V, Esqrt)
     #----------------------------------------------------
 
-        return V * Diagonal(Esqrt.^2) * V'
+        local aux = V * Diagonal(Esqrt)
+
+        return aux*aux'
 
     end
 
     #----------------------------------------------------
-    function getcovroot(Esqrt)
+    function getcovroot(V, Esqrt)
     #----------------------------------------------------
 
         return V * Diagonal(Esqrt)
@@ -151,30 +75,25 @@ function coreMVI(logl::Function, gradlogl::Function, μ, Σ; S = 100, D = D, max
 
 
     #----------------------------------------------------
-    function elbo(μ, Esqrt, Z)
+    function elbo(μ, Esqrt, V, Z)
     #----------------------------------------------------
 
-        local C = getcovroot(Esqrt)
+        local C = getcovroot(V, Esqrt)
 
-        local l = mean(map(z -> logl(μ .+ C*z), Z))
-
-        local H = entropy_sqrt_eigenvalues(Esqrt)
-
-
-        return l + H
+        mean(map(z -> logl(μ .+ C*z), Z)) + ApproximateVI.entropy(Esqrt)
 
     end
 
 
     #----------------------------------------------------
-    function elbo_grad(μ, Esqrt, Z)
+    function elbo_grad(μ, Esqrt, V, Z)
     #----------------------------------------------------
 
         local grad_μ     = zeros(D)
 
         local grad_Esqrt = zeros(D)
 
-        local C          = getcovroot(Esqrt)
+        local C          = getcovroot(V, Esqrt)
 
         local S          = length(Z)
 
@@ -196,17 +115,67 @@ function coreMVI(logl::Function, gradlogl::Function, μ, Σ; S = 100, D = D, max
 
     end
 
+    gradhelper(V, storage, param) = copyto!(storage, minauxiliary_grad(V, param))
+
+
+    #----------------------------------------------------
     # Numerically verify gradient
-    # param = randn(2*D)
-    # @show minauxiliary_grad(param)
-    # @show ForwardDiff.gradient(minauxiliary, param)
+    #----------------------------------------------------
 
-    opt      = Optim.Options(show_trace=true,  show_every=1, iterations=maxiter)
+    if numerical_verification
 
-    result   = Optim.optimize(minauxiliary, [μ; Esqrt], optimiser, opt)
+        local V, Esqrt = eigendecomposition(cov(LAposteriors[1]))
+        adgrad = ForwardDiff.gradient(x->minauxiliary(V, x), [mean(LAposteriors[1]); Esqrt])
+        angrad = minauxiliary_grad(V, [mean(LAposteriors[1]); Esqrt])
+        @printf("gradient from AD vs analytical gradient\n")
+        display([vec(adgrad) vec(angrad)])
+        @printf("maximum absolute difference is %f\n", maximum(abs.(vec(adgrad) - vec(angrad))))
+
+    end
+
+
+    #----------------------------------------------------
+    # Evaluate initial solutions for few iterations
+    #----------------------------------------------------
+
+    function initoptimise(q)
+
+        local V, Esqrt = eigendecomposition(cov(q))
+
+        Optim.optimize(x->minauxiliary(V,x), (x1,x2)->gradhelper(V,x1,x2), [mean(q); Esqrt], optimiser, Optim.Options(iterations = inititerations))
+
+    end
+
+    results = if inititerations > 0
+        @showprogress "Initial search with random start " map(initoptimise, LAposteriors)
+    else
+        map(initoptimise, LAposteriors)
+    end
+
+    bestindex = argmin(map(r -> r.minimum, results))
+
+    bestinitialsolution = results[bestindex].minimizer
+
+    V, Esqrt = eigendecomposition(cov(LAposteriors[bestindex]))
+
+
+    #----------------------------------------------------
+    # Call optimiser
+    #----------------------------------------------------
+
+    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = true, show_every=show_every, iterations = iterations, g_tol = 1e-6)
+
+    result  = Optim.optimize(x->minauxiliary(V, x), (x1,x2)->gradhelper(V,x1,x2), bestinitialsolution, optimiser, options)
 
     μopt, Esqrtopt = unpack(result.minimizer)
 
-    return MvNormal(μopt, getcov(Esqrtopt)), elbo(μopt, Esqrtopt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
+
+    #----------------------------------------------------
+    # Return results
+    #----------------------------------------------------
+
+    Σopt = getcov(V, Esqrtopt)
+
+    return MvNormal(μopt, Σopt), elbo(μopt, Esqrtopt, V, generatelatentZ(S = 10*S, D = D, seed = seed+2))
 
 end

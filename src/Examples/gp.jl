@@ -58,12 +58,13 @@ for i in 1:3
     μ, Σ = AbstractGPs.mean_and_cov(p_fx, xtest)
 
     figure()
-    plot(x, y, "ko",label="Train Data")
-    plot(xtest, ytest, "b-", label="Test Data")
+    plot(x, y, "ko",label="Training data")
+    plot(xtest, ytest, "b-", label="True curve")
 
     plot(xtest, μ, "r-")
     fill_between(xtest, μ.-sqrt.(diag(Σ)),μ.+sqrt.(diag(Σ)), color="r", alpha=0.3)
 
     title(@sprintf("GP posterior, sampled hyperparameters %.2f, %.2f, %.2f", exp(θ[1]),exp(θ[2]),exp(θ[3])))
     legend()
+
 end
