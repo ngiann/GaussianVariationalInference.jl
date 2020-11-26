@@ -1,20 +1,24 @@
 module ApproximateVI
 
-    using Plots, Crayons.Box
+    using PyPlot
 
     using LinearAlgebra, Random, Optim, ForwardDiff
 
     using Printf, ProgressMeter
 
-    using Distributions, Statistics
+    using Distributions
 
-    export VI, VIdiag
+    export VI, VIdiag, MVI, laplace
 
     include("util/plot_ellipse.jl")
     include("util/util.jl")
     include("util/entropy.jl")
-    include("VI.jl")
+    include("VIcalls.jl")
+    include("VIfull.jl")
     include("VIdiag.jl")
+    include("MVI.jl")
+    include("laplace.jl")
 
-    gr()
+    
+
 end

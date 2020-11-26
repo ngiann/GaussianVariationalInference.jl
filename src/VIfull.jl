@@ -1,12 +1,12 @@
-function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray::Array{Array{Float64,1},1}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function coreVIfull(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray::Array{Array{Float64, 2},1}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
     D = length(μarray[1])
 
-    @assert(D == length(Σarray[1]))
+    @assert(D == size(Σarray[1], 1) == size(Σarray[1], 2))
 
     @assert(length(μarray) == length(Σarray))
 
-    @printf("Running VI diagonal with S=%d, D=%d for %d iterations\n", S, D, iterations)
+    @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, D, iterations)
 
 
     #----------------------------------------------------
@@ -22,13 +22,13 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     function unpack(param)
     #----------------------------------------------------
 
-        @assert(length(param) == D+D)
+        @assert(length(param) == D+D*D)
 
         local μ = param[1:D]
 
-        local Cdiag = reshape(param[D+1:D+D], D)
+        local C = reshape(param[D+1:D+D*D], D, D)
 
-        return μ, Cdiag
+        return μ, C
 
     end
 
@@ -37,9 +37,9 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     function minauxiliary(param)
     #----------------------------------------------------
 
-        local μ, Cdiag = unpack(param)
+        local μ, C = unpack(param)
 
-        return -1.0 * elbo(μ, Cdiag, Ztrain)
+        return -1.0 * elbo(μ, C, Ztrain)
 
     end
 
@@ -48,57 +48,56 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     function minauxiliary_grad(param)
     #----------------------------------------------------
 
-        local μ, Cdiag = unpack(param)
+        local μ, C = unpack(param)
 
-        return -1.0 * elbo_grad(μ, Cdiag, Ztrain)
-
-    end
-
-
-    #----------------------------------------------------
-    function getcov(Cdiag)
-    #----------------------------------------------------
-
-        Diagonal(Cdiag.^2)
+        return -1.0 * elbo_grad(μ, C, Ztrain)
 
     end
 
 
     #----------------------------------------------------
-    function getcovroot(Cdiag)
+    function getcov(C)
     #----------------------------------------------------
 
-        return Cdiag
+        return C*C'
 
     end
 
 
     #----------------------------------------------------
-    function elbo(μ, Cdiag, Z)
+    function getcovroot(C)
     #----------------------------------------------------
 
-        mean(map(z -> logl(μ .+ Cdiag.*z), Z)) + ApproximateVI.entropy(Cdiag)
+        return C
 
     end
 
 
     #----------------------------------------------------
-    function elbo_grad(μ, Cdiag, Z)
+    function elbo(μ, C, Z)
     #----------------------------------------------------
 
-        local gradC = 1.0 ./ Cdiag # entropy contribution
+        mean(map(z -> logl(μ .+ C*z), Z)) + ApproximateVI.entropy(C)
 
+    end
+
+
+    #----------------------------------------------------
+    function elbo_grad(μ, C, Z)
+    #----------------------------------------------------
+
+        local Σroot = getcovroot(C)
+        local gradC = (Σroot\I)' # entropy contribution
         local gradμ = zeros(eltype(μ), D)
-
         local S     = length(Z)
 
         for s=1:S
-            g      = gradlogl(μ .+ Cdiag .* Z[s])
-            gradC += g .* Z[s] / S
-            gradμ += g / S
+            g = gradlogl(μ .+ Σroot*Z[s])
+            gradC += (1/S)*g*Z[s]'
+            gradμ += g/S
         end
 
-        return [vec(gradμ); gradC]
+        return [vec(gradμ); vec(gradC)]
 
     end
 
@@ -112,9 +111,9 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
 
     if numerical_verification
 
-        local C = sqrt.(Σarray[1])
-        adgrad = ForwardDiff.gradient(minauxiliary, [μarray[1]; C])
-        angrad = minauxiliary_grad([μarray[1]; C])
+        local C = Matrix(cholesky(Σarray[1]).L)
+        adgrad = ForwardDiff.gradient(minauxiliary, [μarray[1]; vec(C)])
+        angrad = minauxiliary_grad([μarray[1];vec(C)])
         @printf("gradient from AD vs analytical gradient\n")
         display([vec(adgrad) vec(angrad)])
         @printf("maximum absolute difference is %f\n", maximum(abs.(vec(adgrad) - vec(angrad))))
@@ -126,7 +125,7 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     # Evaluate initial solutions for few iterations
     #----------------------------------------------------
 
-    initoptimise(μ, Σ) = Optim.optimize(minauxiliary, gradhelper, [μ; vec(sqrt.(Σ))], optimiser, Optim.Options(iterations = inititerations))
+    initoptimise(μ, Σ) = Optim.optimize(minauxiliary, gradhelper, [μ; vec(Matrix(cholesky(Σ).L))], optimiser, Optim.Options(iterations = inititerations))
 
     results = if inititerations>0
         @showprogress "Initial search with random start " map(initoptimise, μarray, Σarray)
@@ -154,8 +153,8 @@ function coreVIdiag(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     # Return results
     #----------------------------------------------------
 
-    Σ = getcov(Copt)
+    Σopt = getcov(Copt)
 
-    return MvNormal(μopt, Σ), elbo(μopt, Copt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
+    return MvNormal(μopt, Σopt), elbo(μopt, Copt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
 
 end
