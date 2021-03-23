@@ -2,11 +2,13 @@
 # Example: approximate posterior of power law described by two parameters #
 ###########################################################################
 
-# We need:
+# Extra packages needed for this example
 # PyPlot to plot the posterior approximation
 # Random to fix the random seed
+# Statistics for calculating the `uncertainty tube` when plotting results
+# If missing, they must be installed explicitly!
 
-using PyPlot, Random
+using PyPlot, Random, Statistics
 
 
 # ensure repeatability

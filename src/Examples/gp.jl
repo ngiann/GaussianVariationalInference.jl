@@ -3,6 +3,7 @@
 #####################################################################
 
 # Extra packages needed for this example
+# If missing, they must be installed explicitly!
 
 using AbstractGPs, PyPlot, Printf, LinearAlgebra
 
