@@ -38,7 +38,7 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logl::Function, μ::Array{Float64,1}, Σ = Matrix(0.1*I, length(μ), length(μ)); optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VI(logl::Function, μ::Array{Float64,1}, Σ = Matrix(0.1*I, length(μ), length(μ)); gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
     coreVIfull(logl, [μ], [Σ]; gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=0)
 
