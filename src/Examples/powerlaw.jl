@@ -93,4 +93,30 @@ plot(trueparameter[1], trueparameter[2], "mo", label="true parameter")
 
 legend()
 
+
+# Add predictions from approximations
+
+figure(1)
+
+# plot full approximation with mean and standard deviation tube
+
+samples = [decayfunction(xrange, rand(posteriorfull)) for _ in 1:1000]
+
+fill_between(xrange, mean(samples) - std(samples), mean(samples) + std(samples), "b", alpha = 0.1)
+
+plot(xrange, mean(samples), "b--", label = "mean prediction full")
+
+
+# plot mvi approximation with mean and standard deviation tube
+
+samples = [decayfunction(xrange, rand(posteriormvi)) for _ in 1:1000]
+
+fill_between(xrange, mean(samples) - std(samples), mean(samples) + std(samples), "g", alpha = 0.1)
+
+plot(xrange, mean(samples), "g--", label = "mean prediction mvi")
+
+
+legend()
+
+
 nothing
