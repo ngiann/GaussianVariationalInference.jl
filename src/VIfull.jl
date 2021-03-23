@@ -142,7 +142,7 @@ function coreVIfull(logl::Function, μarray::Array{Array{Float64,1},1}, Σarray:
     # Call optimiser
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = true, show_every=show_every, iterations = iterations, g_tol = 1e-6)
+    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = show_every > 0, show_every = show_every, iterations = iterations, g_tol = 1e-6)
 
     result  = Optim.optimize(minauxiliary, gradhelper, bestinitialsolution, optimiser, options)
 
