@@ -16,7 +16,7 @@ module ApproximateVI
     include("VIcalls.jl")
     include("VIfull.jl")
     include("VIdiag.jl")
-    include("VIsphere.jl")
+    include("VIfixedcov.jl")
     include("MVI.jl")
     include("laplace.jl")
 

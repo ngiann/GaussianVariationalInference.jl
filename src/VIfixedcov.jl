@@ -1,8 +1,9 @@
-function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarray::Array{Float64,1}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance=1)
+function coreVIfixedcov(logl::Function, μ::Array{Float64,1}, fixedC::Matrix{Float64}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance=1)
 
-    D = length(μarray[1])
+    D = length(μ)
 
-    @assert(length(μarray) == length(σarray))
+    @assert(D == size(fixedC, 1) == size(fixedC, 2))
+
 
     @printf("Running VI spherical with S=%d, D=%d for %d iterations\n", S, D, iterations)
 
@@ -20,13 +21,11 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     function unpack(param)
     #----------------------------------------------------
 
-        @assert(length(param) == D+1)
+        @assert(length(param) == D)
 
         local μ = param[1:D]
 
-        local σ = param[1+D] # ❗ Note: we don't constrain the sign ❗
-
-        return μ, σ
+        return μ
 
     end
 
@@ -35,9 +34,9 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     function minauxiliary(param)
     #----------------------------------------------------
 
-        local μ, σ = unpack(param)
+        local μ = unpack(param)
 
-        return -1.0 * elbo(μ, σ, Ztrain)
+        return -1.0 * elbo(μ, Ztrain)
 
     end
 
@@ -46,39 +45,36 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     function minauxiliary_grad(param)
     #----------------------------------------------------
 
-        local μ, σ = unpack(param)
+        local μ = unpack(param)
 
-        return -1.0 * elbo_grad(μ, σ, Ztrain)
-
-    end
-
-
-    #----------------------------------------------------
-    function elbo(μ, σ, Z)
-    #----------------------------------------------------
-
-        mean(map(z -> logl(μ .+ σ.*z), Z)) + ApproximateVI.entropy(σ*ones(D))
+        return -1.0 * elbo_grad(μ, Ztrain)
 
     end
 
 
     #----------------------------------------------------
-    function elbo_grad(μ, σ, Z)
+    function elbo(μ, Z)
     #----------------------------------------------------
 
-        local gradlogσ = D / σ # entropy contribution
+        mean(map(z -> logl(μ .+ fixedC*z), Z)) + ApproximateVI.entropy(fixedC)
+
+    end
+
+
+    #----------------------------------------------------
+    function elbo_grad(μ, Z)
+    #----------------------------------------------------
 
         local gradμ = zeros(eltype(μ), D)
 
         local S     = length(Z)
 
         for s=1:S
-            g         = gradlogl(μ .+ σ .* Z[s])
-            gradlogσ += sum(g .* Z[s] / S)
-            gradμ    += g / S
+            g      = gradlogl(μ .+ fixedC * Z[s])
+            gradμ += g / S
         end
 
-        return [vec(gradμ); gradlogσ*adaptvariance]
+        return gradμ
 
     end
 
@@ -92,9 +88,8 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
 
     if numerical_verification
 
-        local σ = σarray[1]
-        adgrad = ForwardDiff.gradient(minauxiliary, [μarray[1]; σ])
-        angrad = minauxiliary_grad([μarray[1]; σ])
+        adgrad = ForwardDiff.gradient(minauxiliary, μ)
+        angrad = minauxiliary_grad(μ)
         @printf("gradient from AD vs analytical gradient\n")
         display([vec(adgrad) vec(angrad)])
         @printf("maximum absolute difference is %f\n", maximum(abs.(vec(adgrad) - vec(angrad))))
@@ -103,41 +98,20 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
 
 
     #----------------------------------------------------
-    # Evaluate initial solutions for few iterations
-    #----------------------------------------------------
-
-    initoptimise(μ, σ) = Optim.optimize(minauxiliary, gradhelper, [μ; σ], optimiser, Optim.Options(iterations = inititerations))
-
-    results = if inititerations > 0
-
-        @showprogress "Initial search with random start " map(initoptimise, μarray, σarray)
-
-    else
-
-        map(initoptimise, μarray, σarray)
-
-    end
-
-    bestindex = argmin(map(r -> r.minimum, results))
-
-    bestinitialsolution = results[bestindex].minimizer
-
-
-    #----------------------------------------------------
     # Call optimiser
     #----------------------------------------------------
 
     options = Optim.Options(extended_trace = false, store_trace = false, show_trace = true, show_every=show_every, iterations = iterations, g_tol = 1e-6)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, bestinitialsolution, optimiser, options)
+    result  = Optim.optimize(minauxiliary, gradhelper, μ, optimiser, options)
 
-    μopt, σopt = unpack(result.minimizer)
+    μopt = unpack(result.minimizer)
 
 
     #----------------------------------------------------
     # Return results
     #----------------------------------------------------
 
-    return MvNormal(μopt, σopt), elbo(μopt, σopt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
+    return MvNormal(μopt, fixedC*fixedC'), elbo(μopt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
 
 end
