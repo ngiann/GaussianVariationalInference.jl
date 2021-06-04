@@ -73,6 +73,17 @@ end
 
 
 #-----------------------------------#
+# Call VI with spherical covariance #
+#-----------------------------------#
+
+
+function VIsphere(logl::Function, μ::Array{Float64,1}, σarray = 0.01; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+    coreVIsphere(logl, [μ], [σ], gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations = inititerations)
+
+end
+
+#-----------------------------------#
 # Call Laplace                      #
 #-----------------------------------#
 
