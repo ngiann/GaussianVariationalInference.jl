@@ -1,4 +1,4 @@
-function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarray::Array{Float64,1}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarray::Array{Float64,1}; gradlogl = gradlogl, seed = 1, S = 100, optimiser=Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance=1)
 
     D = length(μarray[1])
 
@@ -24,7 +24,7 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
 
         local μ = param[1:D]
 
-        local σ = exp(param[1+D])
+        local σ = param[1+D] # ❗ Note: we don't constrain the sign ❗
 
         return μ, σ
 
@@ -54,15 +54,6 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
 
 
     #----------------------------------------------------
-    function getcov(σ)
-    #----------------------------------------------------
-
-        Diagonal(ones(D) * σ.^2)
-
-    end
-
-
-    #----------------------------------------------------
     function elbo(μ, σ, Z)
     #----------------------------------------------------
 
@@ -83,11 +74,11 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
 
         for s=1:S
             g         = gradlogl(μ .+ σ .* Z[s])
-            gradlogσ += sum(g .* σ * Z[s] / S)
+            gradlogσ += sum(g .* Z[s] / S)
             gradμ    += g / S
         end
 
-        return [vec(gradμ); gradlogσ]
+        return [vec(gradμ); gradlogσ*adaptvariance]
 
     end
 
@@ -99,7 +90,7 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     # Numerically verify gradient
     #----------------------------------------------------
 
-    if true#numerical_verification
+    if numerical_verification
 
         local σ = σarray[1]
         adgrad = ForwardDiff.gradient(minauxiliary, [μarray[1]; σ])
@@ -115,7 +106,7 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     # Evaluate initial solutions for few iterations
     #----------------------------------------------------
 
-    initoptimise(μ, σ) = Optim.optimize(minauxiliary, gradhelper, [μ; log(σ)], optimiser, Optim.Options(iterations = inititerations))
+    initoptimise(μ, σ) = Optim.optimize(minauxiliary, gradhelper, [μ; σ], optimiser, Optim.Options(iterations = inititerations))
 
     results = if inititerations > 0
 
@@ -147,8 +138,6 @@ function coreVIsphere(logl::Function, μarray::Array{Array{Float64,1},1}, σarra
     # Return results
     #----------------------------------------------------
 
-    Σ = getcov(σopt)
-
-    return MvNormal(μopt, Σ), elbo(μopt, σopt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
+    return MvNormal(μopt, σopt), elbo(μopt, σopt, generatelatentZ(S = 10*S, D = D, seed = seed+2))
 
 end
