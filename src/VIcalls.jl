@@ -45,6 +45,12 @@ function VI(logl::Function, μ::Array{Float64,1}, Σ = Matrix(0.1*I, length(μ),
 end
 
 
+function VI(logl::Function, initgaussian::AbstractMvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+    VI(logl, mean(initgaussian), cov(initgaussian); gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=0)
+
+end
+
 function VI(logl::Function, μ::Array{Array{Float64,1},1}, Σ = [Matrix(0.1*I, length(μ[1]), length(μ[1])) for _ in 1:length(μ)]; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
     @assert(length(μ) == length(Σ))
@@ -62,6 +68,14 @@ function VIdiag(logl::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(�
     coreVIdiag(logl, [μ], [Σdiag]; gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
 
 end
+
+
+function VIdiag(logl::Function, initgaussian::AbstractMvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+    VIdiag(logl, mean(initgaussian), Diagonal(cov(initgaussian)); gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+
+end
+
 
 function VIdiag(logl::Function, μ::Array{Array{Float64,1},1}, Σdiag = [0.1*ones(length(μ[1])) for _ in 1:length(μ)]; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100,  iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
