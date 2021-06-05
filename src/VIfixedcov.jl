@@ -5,7 +5,7 @@ function coreVIfixedcov(logl::Function, μ::Array{Float64,1}, fixedC::Matrix{Flo
     @assert(D == size(fixedC, 1) == size(fixedC, 2))
 
 
-    @printf("Running VI spherical with S=%d, D=%d for %d iterations\n", S, D, iterations)
+    @printf("Running VI with fixed covariance with S=%d, D=%d for %d iterations\n", S, D, iterations)
 
 
     #----------------------------------------------------
