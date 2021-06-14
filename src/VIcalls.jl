@@ -45,7 +45,7 @@ function VI(logl::Function, μ::Array{Float64,1}, Σ = Matrix(0.1*I, length(μ),
 end
 
 
-function VI(logl::Function, initgaussian::AbstractMvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VI(logl::Function, initgaussian::MvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
     VI(logl, mean(initgaussian), cov(initgaussian); gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=0)
 
@@ -70,9 +70,9 @@ function VIdiag(logl::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(�
 end
 
 
-function VIdiag(logl::Function, initgaussian::AbstractMvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VIdiag(logl::Function, initgaussian::MvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-    VIdiag(logl, mean(initgaussian), Diagonal(cov(initgaussian)); gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    VIdiag(logl, mean(initgaussian), diag(cov(initgaussian)); gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
 
 end
 
@@ -90,12 +90,12 @@ end
 # Call VI with spherical covariance #
 #-----------------------------------#
 
-
 function VIfixedcov(logl::Function, μ::Array{Float64,1}, fixedC::Array{Float64,2}; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance = 1)
 
     coreVIfixedcov(logl, μ, fixedC, gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations = inititerations, adaptvariance = adaptvariance)
 
 end
+
 
 #-----------------------------------#
 # Call Laplace                      #

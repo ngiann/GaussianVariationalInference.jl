@@ -8,7 +8,7 @@ module ApproximateVI
 
     using Distributions
 
-    export VI, VIdiag, VIsphere, MVI, laplace
+    export VI, VIdiag, VIfixedcov, MVI, laplace
 
     include("util/plot_ellipse.jl")
     include("util/util.jl")
