@@ -12,7 +12,7 @@ using AbstractGPs, PyPlot, Printf, LinearAlgebra
 
 function logp(θ; x=x, y=y)
 
-    local kernel = ScaledKernel(transform(Matern52Kernel(), ScaleTransform(exp(θ[1]))),exp(θ[2]))
+    local kernel = exp(θ[2]) * (Matern52Kernel() ∘ ScaleTransform(exp(θ[1])))
 
     local f = GP(kernel)
 
@@ -40,7 +40,7 @@ ytest = sin.(xtest)
 
 # Approximate posterior with Gaussian
 
-postθ, = VI( θ ->  logp(θ; x=x, y=y), [randn(3)*2 for i=1:10], S = 200, iterations = 100, show_every=10)
+postθ, = VI( θ ->  logp(θ; x=x, y=y), [randn(3)*2 for i=1:10], S = 200, iterations = 100, show_every = 10)
 
 
 # Draw samples from posterior and plot
@@ -51,7 +51,7 @@ for i in 1:3
     θ = rand(postθ)
 
     # instantiate kernel
-    sample_kernel = ScaledKernel(transform(Matern52Kernel(), ScaleTransform(exp(θ[1]))),exp(θ[2]))
+    sample_kernel = exp(θ[2]) * (Matern52Kernel() ∘ ScaleTransform(exp(θ[1])))
 
     # intantiate kernel, GP object and calculate posterior mean and covariance for the training data x, y generated above
     f = GP(sample_kernel)
