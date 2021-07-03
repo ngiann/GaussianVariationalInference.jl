@@ -10,7 +10,7 @@ module ApproximateVI
 
     export VI, VIdiag, VIfixedcov, MVI, laplace
 
-    include("util/plot_ellipse.jl")
+    # include("util/plot_ellipse.jl")
     include("util/util.jl")
     include("util/entropy.jl")
     include("VIcalls.jl")
