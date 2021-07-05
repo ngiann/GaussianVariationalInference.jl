@@ -1,6 +1,6 @@
 module ApproximateVI
 
-    using PyPlot
+    #using PyPlot
 
     using LinearAlgebra, Random, Optim, ForwardDiff
 

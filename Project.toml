@@ -1,7 +1,7 @@
 name = "ApproximateVI"
 uuid = "e67a2193-b68a-469d-be77-24baf3975c82"
 authors = ["Nikos Gianniotis <ngiann@gmail.com>"]
-version = "0.1.6"
+version = "0.1.8"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
