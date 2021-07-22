@@ -20,11 +20,11 @@ The method indepedently appeared earlier in [Fixed-Form Variational Posterior Ap
 ## What does the package do
 
 The package offers function `VI`. This function approximates the posterior parameter distribution
-with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by minimizing the expected lower bound:
+with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by maximising the expected lower bound:
 
 ∫ q(θ) log p(x,θ) dθ + ℋ[q]
 
-The above integral is approximated with a monte carlo average of S samples:
+The above integral is approximated with a Monte carlo average of S samples:
 
 1/S 𝜮ₛ log p(x,θₛ) dθ + ℋ[q]
 
@@ -32,9 +32,10 @@ Using the reparametrisation trick, we re-introduce the variational parameters th
 
 1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 
-Contrary to other flavours of the method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
-instead and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
-This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS). However, this comes at the expense of risking overfitting to the samples zₛ that happened to be drawn. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that attempts to address this limitation has been presented [here](https://arxiv.org/abs/1901.04791). 
+Contrary to other flavours of this method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
+at the start and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
+This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS). However, this comes at the expense of risking overfitting to the samples zₛ that happened to be drawn. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that partially addresses this limitation has been presented [here](https://arxiv.org/abs/1901.04791). 
+
 
 ## How to use the package
 
