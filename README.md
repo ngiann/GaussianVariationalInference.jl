@@ -1,4 +1,6 @@
-# ApproximateVI.jl: Approximate variational inference in Julia
+# ApproximateVI.jl: 
+
+Approximate variational inference in Julia
 
 This package implements approximate variational inference as presented in  
 *Approximate variational inference based on a finite sample of Gaussian latent variables,  
