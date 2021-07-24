@@ -1,4 +1,4 @@
-# ApproximateVI.jl: 
+# ApproximateVI.jl
 
 Approximate variational inference in Julia
 
