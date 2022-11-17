@@ -1,8 +1,8 @@
 # ApproximateVI.jl
 
-Approximate variational inference in Julia
+## ℹ What is this?
 
-This package implements approximate variational inference as presented in  
+This is a Julia implementation of the approximate variational inference algorithm presented in  
 *Approximate variational inference based on a finite sample of Gaussian latent variables,  
 Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
 
@@ -32,14 +32,13 @@ Using the reparametrisation trick, we re-introduce the variational parameters th
 
 1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
 
-Contrary to other flavours of this method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn
-at the start and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
+Contrary to other flavours of this method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn at the start and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
 This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS). However, this comes at the expense of risking overfitting to the samples zₛ that happened to be drawn. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that partially addresses this limitation has been presented [here](https://doi.org/10.1109/IJCNN.2019.8852348) (click here for arxiv [copy](https://arxiv.org/abs/1901.04791)). 
 
 
-## How to use the package
+## ▶ How to use the package
 
-The package is fairly easy to use. The only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
+The package is fairly easy to use. Currently, the only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
 
 Consider approximating a target density given by a three-component mixture model:
 
@@ -68,7 +67,7 @@ We also plot the approximating posterior q(θ) as a blue ellipse:
 ![image](docs/images/examplemixturemodel_ellipse.png)
 
 
-## Further examples
+## ▶ Further examples
 More examples can be found in the [/src/Examples](/src/Examples) folder.
 
 
