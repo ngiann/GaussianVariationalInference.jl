@@ -1,23 +1,40 @@
 module ApproximateVI
 
-    #using PyPlot
+    using ThreadsX
 
-    using LinearAlgebra, Random, Optim, ForwardDiff
+    using ArgCheck, Printf, Crayons
 
-    using Printf, ProgressMeter
+    using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
-    using Distributions
 
-    export VI, VIdiag, VIfixedcov, MVI, laplace
-
-    # include("util/plot_ellipse.jl")
-    include("util/util.jl")
-    include("util/entropy.jl")
+    # Core code
+    
     include("VIcalls.jl")
     include("VIfull.jl")
-    include("VIdiag.jl")
-    include("VIfixedcov.jl")
-    include("MVI.jl")
-    include("laplace.jl")
+    include("entropy.jl")
+       
+    # include("VIdiag.jl")
+    # include("VIfixedcov.jl")
+    # include("MVI.jl")
+    # include("laplace.jl")
+     
+    
+    # Utilities
+    
+    include("util/report.jl")
+    include("util/generatelatentZ.jl")
+    include("util/defaultgradient.jl")
+    include("util/verifygradient.jl")
 
+
+    # Example problems
+    
+    include("Examples/exampleproblemsin.jl")
+
+    
+
+    export VI #, VIdiag, VIfixedcov, MVI, laplace
+    
+    export exampleproblemsin
 end
+
