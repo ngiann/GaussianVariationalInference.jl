@@ -3,10 +3,12 @@
 
     q, logev = VI(logl, μ, [σ²=0.1]; S = 100, iterations = 1, show_every = -1)
 
-Returns approximate Gaussian posterior and log evidence
+Returns approximate Gaussian posterior and log evidence.
+
 
 # Arguments
 
+A description of only the most basic arguments follows.
 Arguments in brackets are optional.
 
 - `logl` is a function that expresses the joint log-likelihood
@@ -20,7 +22,6 @@ Arguments in brackets are optional.
 - `q` is the approximating posterior returned as a ```Distributions.MvNormal``` type
 - `logev` is the approximate log-evidence.
 
-More options are explained in the README.md file.
 
 # Example
 
@@ -42,7 +43,7 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
 
     # check validity of arguments
 
-    @argcheck seed >0           
+    @argcheck seed > 0           
 
     @argcheck iterations > 0    
     
@@ -52,7 +53,7 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
     
     @argcheck isposdef(Σ)               "Σ must be positive definite"
     
-    @argcheck length(μ) >= 2
+    @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
     
 
     # check gradient arguments
