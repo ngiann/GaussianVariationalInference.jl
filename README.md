@@ -65,7 +65,7 @@ This returns two outputs: the first one is the approximating posterior q(θ) of 
 Below we plot as contour plot the target unnormalised posterior distribution.
 We also plot the approximating posterior q(θ) as a blue ellipse:
 
-![image](docs/images/examplemixturemodel_ellipse.png)
+![image](examplemixturemodel_ellipse.png)
 
 
 ## Further examples
