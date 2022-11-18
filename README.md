@@ -18,7 +18,7 @@ The method indepedently appeared earlier in [Fixed-Form Variational Posterior Ap
 ## What does the package do
 
 The package offers function `VI`. This function approximates the posterior parameter distribution
-with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by maximising the expected lower bound:
+with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by maximising the expected lower bound (elbo):
 
 ∫ q(θ) log p(x,θ) dθ + ℋ[q]
 
