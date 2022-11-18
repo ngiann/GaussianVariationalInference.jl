@@ -1,15 +1,13 @@
 # ApproximateVI.jl
 
-## ℹ What is this?
+A Julia package for approximate Bayesian inference.
 
-This is a Julia implementation of the approximate variational inference algorithm presented in  
-*Approximate variational inference based on a finite sample of Gaussian latent variables,  
-Pattern Analysis and Applications volume 19, pages 475–485, 2015* [[DOI]](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
+## What is this?
 
-**Documentation and more functionality will be added to this repository soon**
+This is a Julia implementation of the algorithm presented in [[DOI]](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
 
 
-## What is this package about
+## In more detail
 
 This package implements variational inference using the re-parametrisation trick.
 The work was independently developed and published [here](https://doi.org/10.1007/s10044-015-0496-9). 
