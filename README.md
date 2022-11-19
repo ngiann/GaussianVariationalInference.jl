@@ -1,5 +1,7 @@
 # ApproximateVI.jl
 
+![image](https://badgen.net/badge/Status/WIP/blue)
+
 
 
 ## What is this?
