@@ -4,47 +4,21 @@
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/ApproximateVI.jl)
 
 
+# What is this?
 
-## What is this?
-
-A Julia package for approximate Bayesian inference for general (non-conjugate) models.
-
-
-## In more detail
-
-This package implements variational inference using the re-parametrisation trick.
-The work was independently developed and published [[DOI]](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
-Of course, the method has been widely popularised by the works [Doubly Stochastic Variational Bayes for non-Conjugate Inference](http://proceedings.mlr.press/v32/titsias14.pdf) and [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114).
-The method indepedently appeared earlier in [Fixed-Form Variational Posterior Approximation through Stochastic Linear Regression](https://arxiv.org/abs/1206.6679) and later in [A comparison of variational approximations for fast inference in mixed logit models](https://link.springer.com/article/10.1007%2Fs00180-015-0638-y) and perhaps in other publications too...
+A Julia package for approximate Bayesian inference for non-conjugate probabilistic models[^1].
 
 
-## What does the package do
 
-The package offers function `VI`. This function approximates the posterior parameter distribution
-with a Gaussian q(θ) = 𝜨(θ|μ,Σ) by maximising the expected lower bound (elbo):
-
-∫ q(θ) log p(x,θ) dθ + ℋ[q]
-
-The above integral is approximated with a Monte carlo average of S samples:
-
-1/S 𝜮ₛ log p(x,θₛ) dθ + ℋ[q]
-
-Using the reparametrisation trick, we re-introduce the variational parameters that we need to optimise:
-
-1/S 𝜮ₛ log p(x,μ + √Σ zₛ) dθ + ℋ[q], where √Σ is a matrix root of Σ, i.e. √Σ*√Σ' = Σ, and zₛ∼𝜨(0,I).
-
-Contrary to other flavours of this method, that repeatedly draw new samples zₛ at each iteration of the optimiser, here a large number of samples zₛ is drawn at the start and kept fixed throughout the execution of the algorithm (see [paper](https://arxiv.org/pdf/1906.04507.pdf), Algorithm 1).
-This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://en.wikipedia.org/wiki/Limited-memory_BFGS). However, this comes at the expense of risking overfitting to the samples zₛ that happened to be drawn. A mechanism for monitoring potential overfitting is described in the [paper](https://arxiv.org/pdf/1906.04507.pdf), section 2.3. Because of fixing the sample zₛ, the algorithm doesn't not scale well to high number of parameters and is thus recommended for problems with relatively few parameters, e.g. 2-20 parameters. Future work may address this limitation. A method that partially addresses this limitation has been presented [[DOI]](https://doi.org/10.1109/IJCNN.2019.8852348),[[Arxiv]](https://arxiv.org/abs/1901.04791). 
-
-
-## ▶ How to use the package
+## Basic usage
 
 The package is fairly easy to use. Currently, the only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
 
 Consider approximating a target density given by a three-component mixture model:
 
 ```
-using PyPlot # Needed for plotting, alternatively other packages can be used.
+using PyPlot # Must be indepedently installed. 
+             # Needed for plotting, alternatively other packages can be used.
 
 # Define means for three-component Gaussian mixture model
 # All components are implicitly equally weighted and have unit covariance
@@ -68,7 +42,5 @@ We also plot the approximating posterior q(θ) as a blue ellipse:
 ![image](examplemixturemodel_ellipse.png)
 
 
-## ▶ Further examples
-More examples can be found in the [/src/Examples](/src/Examples) folder.
 
-
+[^1]:[Approximate Variational Inference Based on a Finite Sample of Gaussian Latent Variables](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
