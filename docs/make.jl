@@ -1,10 +1,10 @@
 using Documenter, ApproximateVI
 
 makedocs(modules = [ApproximateVI],
-format = Documenter.HTML(prettyurls = false),
-checkdocs = :exports,
-strict = true,
-clean=true,
+        format = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
+        checkdocs = :exports,
+        strict = true,
+        clean=true,
          sitename = "Approximate.jl",
          authors = "Nikos Gianniotis",
          pages = ["Introduction" => "index.md",
