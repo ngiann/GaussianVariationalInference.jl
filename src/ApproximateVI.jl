@@ -1,6 +1,6 @@
 module ApproximateVI
 
-    using ThreadsX
+    using Transducers#ThreadsX
 
     using ArgCheck, Printf, Crayons
 
