@@ -12,3 +12,7 @@ makedocs(modules = [ApproximateVI],
                     "More options" => "moreoptions.md",
                     "Documentation" => "interface.md"])
 
+deploydocs(
+    repo = "https://github.com/ngiann/ApproximateVI.jl",
+)
+
