@@ -104,35 +104,33 @@ function coreVIfull(logl::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; grad
 
     function elbo(μ, C, Z)
 
-        ThreadsX.mapreduce(z -> logl(μ .+ C*z), +, Z) / length(Z) + ApproximateVI.entropy(C)
+        local aux = z -> logl(μ .+ C*z)
+
+        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + ApproximateVI.entropy(C)
 
     end
 
 
+    function partial_elbo_grad(μ, C, z)
+
+        local g = gradlogl(μ .+ C*z)
+            
+        [g; vec(g*z')] # gradμ = g, gradC = g*z'
+        
+    end
+
+
     function elbo_grad(μ, C, Z)
-
-
-        local Σroot = getcovroot(C)
+       
+        local aux = z -> partial_elbo_grad(μ, C, z)
         
-        local gradC = (Σroot\I)' # entropy contribution
+        local gradμC = Transducers.foldxt(+, Map(aux), Z) / length(Z)
+
+        # entropy contribution to covariance
+
+        gradμC[D+1:end] .+= vec((C\I)') 
         
-        local gradμ = zeros(eltype(μ), D)
-
-        local S     = length(Z)
-
-
-        for s in 1:S
-            
-            g = gradlogl(μ .+ Σroot*Z[s])
-            
-            gradC += (1/S)*g*Z[s]'
-
-            gradμ += g/S
-
-        end
-
-
-        return [vec(gradμ); vec(gradC)]
+        return gradμC
 
     end
 
