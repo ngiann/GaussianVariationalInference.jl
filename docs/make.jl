@@ -10,8 +10,8 @@ makedocs(modules = [ApproximateVI],
          sitename = "Approximate.jl",
          authors = "Nikos Gianniotis",
          pages = ["Introduction" => "index.md",
-                    "Technical description" => "technicaldescription.md",
                     "More options" => "moreoptions.md",
+                    "Technical description" => "technicaldescription.md",
                     "Documentation" => "interface.md"])
 
 deploydocs(
