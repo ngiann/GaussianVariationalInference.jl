@@ -48,8 +48,10 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
     @argcheck iterations > 0    
     
     @argcheck S > 0         
-    
+
     @argcheck size(Σ, 1) == size(Σ, 2)  "Σ must be a square matrix"
+    
+    @argcheck length(μ)  == size(Σ, 1)  == size(Σ, 2) "dimensions of μ do not agree with dimensions of Σ"
     
     @argcheck isposdef(Σ)               "Σ must be positive definite"
     
