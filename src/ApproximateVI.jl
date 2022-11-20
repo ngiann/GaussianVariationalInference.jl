@@ -9,7 +9,7 @@ module ApproximateVI
 
     # Core code
     
-    include("VIcalls.jl")
+    include("interface.jl")
     include("VIfull.jl")
     include("entropy.jl")
        
