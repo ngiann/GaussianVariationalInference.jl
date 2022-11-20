@@ -3,7 +3,11 @@ function report(countiterations, show_every, test_every, Stest, elbo, bestμ, be
     
     if countiterations == 1
         
-        @printf("Reporting elbo every %d iterations\n", show_every)
+        if show_every > 0
+
+            @printf("Reporting elbo every %d iterations\n", show_every)
+
+        end
 
         if Stest > 0 && test_every > 0
         
