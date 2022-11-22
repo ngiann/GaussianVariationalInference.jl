@@ -12,7 +12,7 @@ A description of only the most basic arguments follows.
 
 - `logl` is a function that expresses the joint log-likelihood
 - `μ` is the initial mean of the approximating Gaussian posterior.
-- `σ²` specifies the initial covariance as σ² * I of the approximating Gaussian posterior. Default value is `0.1`.
+- `σ²` specifies the initial covariance of the approximating Gaussian posterior as σ² * I . Default value is `0.1`.
 - `S` is the number of drawn samples that approximate the lower bound integral.
 - `iterations` specifies for how many iterations to run optimisation on the lower bound (elbo).
 - `show_every`: report progress every `show_every` number of iterations.
