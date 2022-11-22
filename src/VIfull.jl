@@ -2,9 +2,6 @@ function coreVIfull(logl::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; grad
 
     D = length(μ₀)
 
-    @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, D, iterations)
-
-
     #----------------------------------------------------
     # generate latent variables
     #----------------------------------------------------

@@ -92,6 +92,8 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
 
     # Call actual algorithm
 
+    @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+
     coreVIfull(logl, μ, Σ; gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
 end
