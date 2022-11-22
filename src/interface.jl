@@ -1,7 +1,7 @@
 """
 # Basic use:
 
-    q, logev = VI(logl, μ, σ²=0.1; S = 100, iterations = 1, show_every = -1)
+    q, logev = VI(logp, μ, σ²=0.1; S = 100, iterations = 1, show_every = -1)
 
 Returns approximate Gaussian posterior and log evidence.
 
@@ -10,7 +10,7 @@ Returns approximate Gaussian posterior and log evidence.
 
 A description of only the most basic arguments follows.
 
-- `logl` is a function that expresses the joint log-likelihood
+- `logp` is a function that expresses the (unnormalised) log-posterior, i.e. joint log-likelihood.
 - `μ` is the initial mean of the approximating Gaussian posterior.
 - `σ²` specifies the initial covariance of the approximating Gaussian posterior as σ² * I . Default value is `0.1`.
 - `S` is the number of drawn samples that approximate the lower bound integral.
@@ -38,7 +38,7 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = defaultgradient(μ), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1) where T
+function VI(logp::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogp = defaultgradient(μ), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1) where T
 
 
     # check validity of arguments
@@ -65,13 +65,13 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
 
     if gradientmode == :forward
         
-        gradlogl = x -> ForwardDiff.gradient(logl, x)
+        gradlogp = x -> ForwardDiff.gradient(logp, x)
 
         optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
 
     elseif gradientmode == :provided
 
-        if any(isnan.(gradlogl(μ)))
+        if any(isnan.(gradlogp(μ)))
             
             error("provided gradient returns NaN when evaluate at provided μ")
 
@@ -94,12 +94,12 @@ function VI(logl::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogl = default
 
     @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
 
-    coreVIfull(logl, μ, Σ; gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    coreVIfull(logp, μ, Σ; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
 end
 
 
-function VI(logl::Function, μ::Array{T, 1}, σ²::T = 0.1; gradlogl = defaultgradient(μ), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1) where T
+function VI(logp::Function, μ::Array{T, 1}, σ²::T = 0.1; gradlogp = defaultgradient(μ), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1) where T
 
     @argcheck σ² > 0
     
@@ -109,14 +109,14 @@ function VI(logl::Function, μ::Array{T, 1}, σ²::T = 0.1; gradlogl = defaultgr
     
     Σ = Matrix(σ²*I, length(μ), length(μ))
 
-    VI(logl, μ, Σ; gradlogl = gradlogl, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VI(logp, μ, Σ; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
 end
 
 
-function VI(logl::Function, initgaussian::MvNormal; gradlogl = defaultgradient(mean(initgaussian)), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int = 1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1,  test_every::Int = -1)
+function VI(logp::Function, initgaussian::MvNormal; gradlogp = defaultgradient(mean(initgaussian)), gradientmode = :forward, seed::Int = 1, S::Int = 100, iterations::Int = 1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1,  test_every::Int = -1)
 
-    VI(logl, mean(initgaussian), cov(initgaussian); gradlogl = gradlogl, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VI(logp, mean(initgaussian), cov(initgaussian); gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
 end
 
@@ -127,24 +127,24 @@ end
 # # Call mean field                   #
 # #-----------------------------------#
 
-# function VIdiag(logl::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(μ)); gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+# function VIdiag(logp::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(μ)); gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-#     coreVIdiag(logl, [μ], [Σdiag]; gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
-
-# end
-
-
-# function VIdiag(logl::Function, initgaussian::MvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-#     VIdiag(logl, mean(initgaussian), diag(cov(initgaussian)); gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+#     coreVIdiag(logp, [μ], [Σdiag]; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
 
 # end
 
 
-# function VIdiag(logl::Function, μ::Array{Array{Float64,1},1}, Σdiag = [0.1*ones(length(μ[1])) for _ in 1:length(μ)]; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100,  iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+# function VIdiag(logp::Function, initgaussian::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+#     VIdiag(logp, mean(initgaussian), diag(cov(initgaussian)); gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+
+# end
 
 
-#     coreVIdiag(logl, μ, Σdiag; gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+# function VIdiag(logp::Function, μ::Array{Array{Float64,1},1}, Σdiag = [0.1*ones(length(μ[1])) for _ in 1:length(μ)]; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100,  iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+
+#     coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
 
 
 # end
@@ -154,9 +154,9 @@ end
 # # Call VI with spherical covariance #
 # #-----------------------------------#
 
-# function VIfixedcov(logl::Function, μ::Array{Float64,1}, fixedC::Array{Float64,2}; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance = 1)
+# function VIfixedcov(logp::Function, μ::Array{Float64,1}, fixedC::Array{Float64,2}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance = 1)
 
-#     coreVIfixedcov(logl, μ, fixedC, gradlogl = gradlogl, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations = inititerations, adaptvariance = adaptvariance)
+#     coreVIfixedcov(logp, μ, fixedC, gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations = inititerations, adaptvariance = adaptvariance)
 
 # end
 
@@ -165,15 +165,15 @@ end
 # # Call Laplace                      #
 # #-----------------------------------#
 
-# function laplace(logl::Function, x::Array{Float64,1}; gradlogl = x -> ForwardDiff.gradient(logl, x), hesslog = x->ForwardDiff.hessian(logl, x), optimiser=Optim.LBFGS(), iterations=1000, show_every=-1)
+# function laplace(logp::Function, x::Array{Float64,1}; gradlogp = x -> ForwardDiff.gradient(logp, x), hesslog = x->ForwardDiff.hessian(logp, x), optimiser=Optim.LBFGS(), iterations=1000, show_every=-1)
 
-#     laplace(logl, [x]; gradlogl=gradlogl, hesslog = hesslog, optimiser = optimiser, iterations = iterations, show_every = show_every)
+#     laplace(logp, [x]; gradlogp=gradlogp, hesslog = hesslog, optimiser = optimiser, iterations = iterations, show_every = show_every)
 
 # end
 
-# function laplace(logl::Function, X::Array{Array{Float64,1},1}; gradlogl = x -> ForwardDiff.gradient(logl, x), hesslog = x->ForwardDiff.hessian(logl, x), optimiser=Optim.LBFGS(), iterations=1000, show_every=-1)
+# function laplace(logp::Function, X::Array{Array{Float64,1},1}; gradlogp = x -> ForwardDiff.gradient(logp, x), hesslog = x->ForwardDiff.hessian(logp, x), optimiser=Optim.LBFGS(), iterations=1000, show_every=-1)
 
-#     map(x->coreLaplace(logl, gradlogl, hesslog, x; iterations = iterations, optimiser = optimiser, show_every = show_every), X)
+#     map(x->coreLaplace(logp, gradlogp, hesslog, x; iterations = iterations, optimiser = optimiser, show_every = show_every), X)
 
 # end
 
@@ -182,23 +182,23 @@ end
 # # Call Mixed Variational Inference  #
 # #-----------------------------------#
 
-# function MVI(logl::Function, μ::Array{Float64,1}; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+# function MVI(logp::Function, μ::Array{Float64,1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-#     MVI(logl, [μ]; gradlogl = gradlogl, seed = seed, S = S, optimiser=optimiser, laplaceiterations=laplaceiterations, iterations=iterations, numerical_verification = numerical_verification, Stest=Stest, show_every=show_every, inititerations=inititerations)
-
-# end
-
-
-# function MVI(logl::Function, μ::Array{Array{Float64,1},1}; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-#     LAposteriors = laplace(logl, μ; gradlogl = gradlogl, optimiser=optimiser, iterations=laplaceiterations, show_every=show_every)
-
-#     coreMVI(logl, gradlogl, LAposteriors; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+#     MVI(logp, [μ]; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, laplaceiterations=laplaceiterations, iterations=iterations, numerical_verification = numerical_verification, Stest=Stest, show_every=show_every, inititerations=inititerations)
 
 # end
 
-# function MVI(logl::Function, LAposterior::MvNormal; gradlogl = x -> ForwardDiff.gradient(logl, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000, seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-#     coreMVI(logl, gradlogl, [LAposterior]; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+# function MVI(logp::Function, μ::Array{Array{Float64,1},1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+#     LAposteriors = laplace(logp, μ; gradlogp = gradlogp, optimiser=optimiser, iterations=laplaceiterations, show_every=show_every)
+
+#     coreMVI(logp, gradlogp, LAposteriors; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+
+# end
+
+# function MVI(logp::Function, LAposterior::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000, seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+
+#     coreMVI(logp, gradlogp, [LAposterior]; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
 
 # end
