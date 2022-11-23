@@ -6,20 +6,19 @@
 Our goal is to approximate the true (unnormalised) posterior  distribution ``p(\theta|\mathcal{D})`` with a Gaussian ``q(\theta) = \mathcal{N}(\theta|\mu,\Sigma)`` by 
 maximising the expected lower bound:
 
-``\int q(\theta) \log p(x, \theta) d\theta + \mathcal{H}[q]``
+``\int q(\theta) \log p(x, \theta) d\theta + \mathcal{H}[q]``,
 
 also known as the ELBO. The above integral is approximated with as a Monte carlo average over ``S`` number of samples:
 
-``\frac{1}{S} \sum_{s=1}^S \log p(x, \theta_s) + \mathcal{H}[q]``
+``\frac{1}{S} \sum_{s=1}^S \log p(x, \theta_s) + \mathcal{H}[q]``.
 
 Using the reparametrisation trick, we re-introduce the variational parameters that we need to optimise:
 
-``\frac{1}{S} \sum_{s=1}^S \log p(x, \mu + C z_s) + \mathcal{H}[q]``
+``\frac{1}{S} \sum_{s=1}^S \log p(x, \mu + C z_s) + \mathcal{H}[q]``,
 
 where ``z_s\sim\mathcal{N}(0,I)`` and ``C`` is a matrix root of ``\Sigma``, i.e. ``CC^T = \Sigma``.
 
-By optimising the approximate lower bound with respect to the variational parameters ``\mu`` and ``C`` we obtain the approximate posterior ``q(\theta) = \mathcal{N}(\t
-heta|\mu,CC^T)`` that offers the best Gaussian approximation to true posterior ``p(\theta|\mathcal{D})``.
+By optimising the approximate lower bound with respect to the variational parameters ``\mu`` and ``C`` we obtain the approximate posterior ``q(\theta) = \mathcal{N}(\theta|\mu,CC^T)`` that offers the best Gaussian approximation to true posterior ``p(\theta|\mathcal{D})``.
 
 
 ## In more detail
