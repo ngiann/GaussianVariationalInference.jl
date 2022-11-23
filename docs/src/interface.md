@@ -1,5 +1,0 @@
-# User interface
-
-```@docs
-VI
-```
