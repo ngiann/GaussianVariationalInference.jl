@@ -1,8 +1,14 @@
 """
-    exampleproblem1()
-
-    Synthetic 2D problem
+    Synthetic two-dimensional problem
     
+# Example
+```julia-repl
+julia> logp = exampleproblem1() # Target distribution to approximate
+julia> q, logev = VI(logp, randn(2), S = 100, iterations = 100, show_every = 5)
+julia> using PyPlot # PyPlot, or any other plotting package, must be indepedently installed.
+julia> x=-3:0.02:3
+julia> pcolor(x, x, map(x -> exp(logp(collect(x))), Iterators.product(x, x))') # plot target
+```
 """
 function exampleproblem1()
 
