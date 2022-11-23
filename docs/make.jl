@@ -7,7 +7,7 @@ makedocs(
     authors = "Nikos Gianniotis",
     pages = ["Introduction"      => "index.md", 
              "More options"      => "moreoptions.md",
-             "Technical summary" => "technicalsummary.md",
+             "Technical description" => "technicaldescription.md",
              "Reference"         => "reference.md"]
 )
 
