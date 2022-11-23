@@ -3,7 +3,7 @@
 
 ## What's this package for?
 
-Approximate a posterior distribution with a Gaussian by minimising Kullback-Leibler divergence.
+Approximate a posterior distribution with a Gaussian by minimising Kullback-Leibler divergence [^1].
 
 
 
@@ -31,5 +31,4 @@ using ApproximateVIUtilities # install this for auxiliary functionality
 
 ```
 
-
-
+[^1]:[Approximate Variational Inference Based on a Finite Sample of Gaussian Latent Variables](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
