@@ -1,4 +1,4 @@
-function coreVIfull(logl::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; gradlogl = gradlogl, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIfull(logp::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
 
     D = length(μ₀)
 
@@ -101,7 +101,7 @@ function coreVIfull(logl::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; grad
 
     function elbo(μ, C, Z)
 
-        local aux = z -> logl(μ .+ C*z)
+        local aux = z -> logp(μ .+ C*z)
 
         Transducers.foldxt(+, Map(aux),  Z) / length(Z) + ApproximateVI.entropy(C)
 
@@ -110,7 +110,7 @@ function coreVIfull(logl::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; grad
 
     function partial_elbo_grad(μ, C, z)
 
-        local g = gradlogl(μ .+ C*z)
+        local g = gradlogp(μ .+ C*z)
             
         [g; vec(g*z')] # gradμ = g, gradC = g*z'
         
