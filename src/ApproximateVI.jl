@@ -29,12 +29,12 @@ module ApproximateVI
 
     # Example problems
     
-    include("Examples/exampleproblemsin.jl")
+    include("Examples/exampleproblem1.jl")
 
     
 
     export VI #, VIdiag, VIfixedcov, MVI, laplace
     
-    export exampleproblemsin
+    export exampleproblem1
 end
 
