@@ -5,7 +5,10 @@ makedocs(
     format = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
     clean = true,
     authors = "Nikos Gianniotis",
-    pages = ["Introduction" => "index.md", "Reference" => "reference.md"]
+    pages = ["Introduction"      => "index.md", 
+             "More options"      => "moreoptions.md",
+             "Technical summary" => "technicalsummary.md",
+             "Reference"         => "reference.md"]
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.

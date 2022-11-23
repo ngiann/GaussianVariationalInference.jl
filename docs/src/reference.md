@@ -1,5 +1,5 @@
 ```@docs
 ApproximateVI
 VI
-examplesynthproblem1
+exampleproblem1
 ```
