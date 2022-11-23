@@ -1,3 +1,6 @@
+"""
+Approximates unnormalised posterior with Gaussian distribution
+"""
 module ApproximateVI
 
     using Transducers#ThreadsX
