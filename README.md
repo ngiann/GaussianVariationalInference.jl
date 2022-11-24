@@ -6,7 +6,7 @@
 
 # What is this?
 
-A Julia package for approximate Bayesian inference for non-conjugate probabilistic models[^1].
+A Julia package for approximating a posterior distribution with a full-covariance Gaussian distribution[^1]. Currently, more documentation is added to the package. In the future it is planned to introduce a mean-field approximation.
 
 
 
@@ -17,30 +17,24 @@ The package is fairly easy to use. Currently, the only function of interest to t
 Consider approximating a target density given by a three-component mixture model:
 
 ```
-using PyPlot # Must be indepedently installed. 
-             # Needed for plotting, alternatively other packages can be used.
+using ApproximateVI
 
-# Define means for three-component Gaussian mixture model
-# All components are implicitly equally weighted and have unit covariance
-μ = [zeros(2), [2.5; 0.0], [-2.5; 0.0]]
+logp = exampleproblem1() # target log-posterior to approximate
+x₀ = randn(2)            # random initial mean for approximating Gaussian
+q, logev = VI(logp, randn(2), S = 100, iterations = 10_000, show_every = 50)
 
-# Define log-likelihood
-logp(θ) = log(exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[1].-θ).^2)) + exp(-0.5*sum((μ[3].-θ).^2)))
+# Plot target posterior, not log-posterior!
+using Plots # must be indepedently installed.
+x = -3:0.02:3
+contour(x, x, map(x -> exp(logp(collect(x))), Iterators.product(x, x))', fill=true, c=:blues)
+
+# Plot Gaussian approximation on top using red colour
+contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="red", alpha=0.2)
 ```
 
-We will now approximate it with a Gaussian density. We need to pass to ```VI``` the log-likelihood function, a starting point for the mean of the approximate Gaussian posterior, as well as the number of fixed samples and the number of iterations we want to optimise the lower bound for:
 
-```
-posterior, logevidence = VI(logp, randn(2); S = 100, iterations = 30)
-```
+![image](docs/src/exampleproblem1.png)
 
-This returns two outputs: the first one is the approximating posterior q(θ) of type ```MvNormal``` (see [Distributions.jl](https://github.com/JuliaStats/Distributions.jl)). The second output is the approximate lower bound of type ```Float64```.
-
-Below we plot as contour plot the target unnormalised posterior distribution.
-We also plot the approximating posterior q(θ) as a blue ellipse:
-
-![image](examplemixturemodel_ellipse.png)
-
-
+For further information, please consult the documentation.
 
 [^1]:[Approximate Variational Inference Based on a Finite Sample of Gaussian Latent Variables](https://doi.org/10.1007/s10044-015-0496-9), [[Arxiv]](https://arxiv.org/pdf/1906.04507.pdf).
