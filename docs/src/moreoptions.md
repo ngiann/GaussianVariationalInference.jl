@@ -2,8 +2,7 @@
 
 ## Specifying gradient options
 
-Function `VI` allows the user to obtain a Gaussian approximation with minimal requirements. 
-The user only needs to code a function `logp` that implements the log-posterior, provide an initial starting point `x₀` and call:
+Function `VI` allows the user to obtain a Gaussian approximation with minimal requirements. The user only needs to code a function `logp` that implements the log-posterior, provide an initial starting point `x₀` and call:
 
 ```
 # log-posterior is a Gaussian with zero mean and unit covariance.
@@ -30,7 +29,7 @@ However, providing a gradient for `logp` can speed up the computation in `VI`.
 
 If no options relating to the gradient are specified, i.e. none of the options `gradientmode` or `gradlogp` is specified, `VI` will by default use internally the [`Optim.NelderMead`](https://julianlsolvers.github.io/Optim.jl/stable/#algo/nelder_mead/) optimiser that does not need a gradient.  
 
-The user can explicitly specify that the algorithm should use the gradient free [`Optim.NelderMead`](https://julianlsolvers.github.io/Optim.jl/stable/#algo/nelder_mead/) optimisation algorithm by setting `gradientmode = :gradientfree`.
+The user can explicitly specify that `VI` should use the gradient free optimisation algorithm  `Optim.NelderMead` by setting `gradientmode = :gradientfree`.
 
 
 
@@ -38,7 +37,7 @@ The user can explicitly specify that the algorithm should use the gradient free 
 
 *Specify by* `gradientmode = :forward`.
 
-If `logp` is coding a differentiable function, then its gradient can be conveniently computed using automatic differentiation. By specifying `gradientmode = :forward`, function `VI` will internally use [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) to calculate the gradient of `logp`. In this
+If `logp` is coding a differentiable function[^1], then its gradient can be conveniently computed using automatic differentiation. By specifying `gradientmode = :forward`, function `VI` will internally use [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) to calculate the gradient of `logp`. In this
 case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/) optimiser.
 
 ```
@@ -52,7 +51,7 @@ We note that with the use of `gradientmode = :forward` we arrive in fewer iterat
 
 *Specify by* `gradientmode = :provided`.
 
-The user can provide a gradient for `logp` via the `gralogp` option:
+The user can provide a gradient for `logp` via the `gradlogp` option:
 ```
 # Let us calculate the gradient explicitly
 gradlogp(x) = -x
@@ -65,7 +64,7 @@ In this case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolver
 
 !!! note
 
-    Even if a gradient has been explicitly provided via the `gralogl` option, the user still needs to specify `gradientmode = :provided` to instruct `VI` to use the provided gradient.
+    Even if a gradient has been explicitly provided via the `gradlogp` option, the user still needs to specify `gradientmode = :provided` to instruct `VI` to use the provided gradient.
 
 
 
@@ -75,6 +74,8 @@ In this case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolver
 The options `S` specifies the number of samples to use when approximating the expected lower bound, see [Technical description](@ref). The higher the value we use for `S`, the better the approximation will be, however, at a higher computational cost. The lower the value we use for `S`, the faster the computation will be, but the approximation may be poorer. Hence, when setting `S` we need to take this trade-off into account.
 
 
-Function `VI` offers a mechanism that informs us whether the value `S` is set to a high enough value. This mechanism makes use of two options, namely `Stest` and `test_every`. Option `Stest` defines the number of test samplesused exclusively for evaluating (*not optimising!*) the Kullback-Leibler divergence every `test_every` number of iterations. Monitoring the Kullback-Leibler divergence in this way offers an effective way of detecting whether `S` has been set sufficiently high.
+Function `VI` offers a mechanism that informs us whether the value `S` is set to a sufficiently high value. This mechanism makes use of two options, namely `Stest` and `test_every`. Option `Stest` defines the number of test samples used exclusively for evaluating (*not optimising!*) the expected lower bound (ELBO) every `test_every` number of iterations, see [ELBO maximisation](@ref). Monitoring the ELBO this way is an effective way of detecting whether `S` has been set sufficiently high.
 
 Function `VI` will report `test_every` iterations the value of ....
+
+[^1]:The implementation of the function needs to satisfy certain requirements, see [here](https://juliadiff.org/ForwardDiff.jl/stable/user/limitations/).

@@ -1,7 +1,7 @@
 # Technical description
 
 
-## Variational inference via the re-parametrisation trick
+## ELBO maximisation
 
 Our goal is to approximate the true (unnormalised) posterior  distribution ``p(\theta|\mathcal{D})`` with a Gaussian ``q(\theta) = \mathcal{N}(\theta|\mu,\Sigma)`` by 
 maximising the expected lower bound:
@@ -18,7 +18,7 @@ Using the reparametrisation trick, we re-introduce the variational parameters th
 
 where ``z_s\sim\mathcal{N}(0,I)`` and ``C`` is a matrix root of ``\Sigma``, i.e. ``CC^T = \Sigma``.
 
-By optimising the approximate lower bound with respect to the variational parameters ``\mu`` and ``C`` we obtain the approximate posterior ``q(\theta) = \mathcal{N}(\theta|\mu,CC^T)`` that offers the best Gaussian approximation to true posterior ``p(\theta|\mathcal{D})``.
+By maximising the approximate ELBO with respect to the variational parameters ``\mu`` and ``C`` we obtain the approximate posterior ``q(\theta) = \mathcal{N}(\theta|\mu,CC^T)`` that is the best Gaussian approximation to true posterior ``p(\theta|\mathcal{D})``.
 
 The number of samples ``S`` in the above description, can be controlled via the option `S` when calling `VI`. 
 

@@ -3,7 +3,7 @@
 
 ## What's this package for?
 
-Use this package to approximate a posterior distribution with a Gaussian[^1].
+This package implements approximate Bayesian inference: it approximates a posterior distribution with a full-covariance Gaussian distribution[^1].
 
 
 
@@ -32,7 +32,7 @@ contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="r
 A plot similar to the one below should appear.
 ![exampleproblem1](exampleproblem1.png)
 
-Options `S` above specifies the number of samples to use in order to approximate the variational lower bound, i.e. the objective that which minimised produces the best Gaussian approximation. The higher `S` is set the better, however, at a higher computational cost. The lower `S` the faster the method, but the riskier to produce a biased solution, see [Technical description](@ref).
+Options `S` above specifies the number of samples to use in order to approximate the ELBO (see [Technical description](@ref)), i.e. the objective that which minimised produces the best Gaussian approximation. The higher `S` is set the better, however, at a higher computational cost. The lower `S` the faster the method, but the riskier to produce a biased solution.
 
 
 
