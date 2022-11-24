@@ -6,8 +6,8 @@ Function `VI` allows the user to obtain a Gaussian approximation with minimal re
 The user only needs to code a function `logp` that implements the log-posterior, provide an initial starting point `x₀` and call:
 
 ```
-# log-posterior is an unnormalised Gaussian,
-# hence our approximation should be exact in this example.
+# log-posterior is a Gaussian with zero mean and unit covariance.
+# Hence, our approximation should be exact in this example.
 logp(x) = -sum(x.*x) / 2
 
 # implicitly specifies that the log-posterior is 5-dim
@@ -15,6 +15,10 @@ x₀ = randn(5)
 
 # obtain approximation
 q, logev = VI(logp, x₀, S = 200, iterations = 10_000, show_every = 200)
+
+# check that mean is close to zero and covariance close to identity
+mean(q)
+cov(q)
 ```
 However, providing a gradient for `logp` can speed up the computation in `VI`.
 
@@ -33,7 +37,7 @@ The user can explicitly specify that the algorithm should use the gradient free 
 
 *Specify by* `gradientmode = :forward`.
 
-If `logp` is coding a differentiable function, the its gradient can be conveniently computed using automatic differentiation. By specifying `gradientmode = :forward`, function `VI` will internally use [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) to calculate the gradient of `logp`. In this
+If `logp` is coding a differentiable function, then its gradient can be conveniently computed using automatic differentiation. By specifying `gradientmode = :forward`, function `VI` will internally use [ForwardDiff](https://github.com/JuliaDiff/ForwardDiff.jl) to calculate the gradient of `logp`. In this
 case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/) optimiser.
 
 ```
