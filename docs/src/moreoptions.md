@@ -10,13 +10,14 @@ The user only needs to code a function `logp` that implements the log-posterior,
 # Hence, our approximation should be exact in this example.
 logp(x) = -sum(x.*x) / 2
 
-# implicitly specifies that the log-posterior is 5-dim
+# implicitly specifies that the log-posterior is 5-dimensional
 x₀ = randn(5)
 
 # obtain approximation
 q, logev = VI(logp, x₀, S = 200, iterations = 10_000, show_every = 200)
 
-# check that mean is close to zero and covariance close to identity
+# Check that mean is close to zero and covariance close to identity.
+# mean and cov are re-exported function from Distributions.jl
 mean(q)
 cov(q)
 ```
@@ -67,4 +68,13 @@ In this case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolver
     Even if a gradient has been explicitly provided via the `gralogl` option, the user still needs to specify `gradientmode = :provided` to instruct `VI` to use the provided gradient.
 
 
+
+
 ## Evaluating the lower bound on test samples
+
+The options `S` specifies the number of samples to use when approximating the expected lower bound, see [Technical description](@ref). The higher the value we use for `S`, the better the approximation will be, however, at a higher computational cost. The lower the value we use for `S`, the faster the computation will be, but the approximation may be poorer. Hence, when setting `S` we need to take this trade-off into account.
+
+
+Function `VI` offers a mechanism that informs us whether the value `S` is set to a high enough value. This mechanism makes use of two options, namely `Stest` and `test_every`. Option `Stest` defines the number of test samplesused exclusively for evaluating (*not optimising!*) the Kullback-Leibler divergence every `test_every` number of iterations. Monitoring the Kullback-Leibler divergence in this way offers an effective way of detecting whether `S` has been set sufficiently high.
+
+Function `VI` will report `test_every` iterations the value of ....
