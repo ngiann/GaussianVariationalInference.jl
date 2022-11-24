@@ -17,6 +17,7 @@ The package is fairly easy to use. Currently, the only function of interest to t
 Consider approximating a target density given by a three-component mixture model:
 
 ```
+using ApproximateVI
 using PyPlot # Must be indepedently installed. 
              # Needed for plotting, alternatively other packages can be used.
 
