@@ -3,11 +3,13 @@ Approximates unnormalised posterior with Gaussian distribution
 """
 module ApproximateVI
 
-    using Transducers#ThreadsX
+    using Transducers
 
     using ArgCheck, Printf, Crayons
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
+
+    import Distributions: logpdf, pdf, cov, mean, MvNormal
 
 
     # Core code
@@ -39,5 +41,8 @@ module ApproximateVI
     export VI #, VIdiag, VIfixedcov, MVI, laplace
     
     export exampleproblem1
+
+    # Re-export 
+    export cov, mean, pdf, logpdf
 end
 
