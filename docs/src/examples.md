@@ -1,10 +1,12 @@
-# Infer posterior of GP hyperparameters
+# Examples
+
+## Infer posterior of GP hyperparameters
 
 In the following we approximate the intractable posterior of the hyperparameters of a Gaussian process. In order to reproduce this example, certain packages need to be independently installed.
 
 
 ```
-using ApproximateVI
+using ApproximateVI, Printf
 using AbstractGPs, PyPlot, LinearAlgebra # These packages need to be independently installed
 
 
@@ -66,11 +68,21 @@ for i in 1:3
     plot(xtest, μ, "r-")
     fill_between(xtest, μ.-sqrt.(diag(Σ)),μ.+sqrt.(diag(Σ)), color="r", alpha=0.3)
 
-    #title(@sprintf("GP posterior, sampled hyperparameters %.2f, %.2f, %.2f", exp(θ[1]),exp(θ[2]),exp(θ[3])))
-    #legend()
+    title(@sprintf("GP posterior, sampled hyperparameters %.2f, %.2f, %.2f", exp(θ[1]),exp(θ[2]),exp(θ[3])))
+    legend()
 
 end
 ```
 
 
-# Monitoring ELBO using `Stest` and `test_every`
+## Monitoring ELBO using `Stest` and `test_every`
+
+We use again as our target distribution an unnormalised Gaussian.
+```
+logp(x) = -sum(x.*x) / 2
+
+# implicitly specifies that the log-posterior is 30-dimensional
+x₀ = randn(30)
+```
+
+We set `S=30` and test on an indepedent set of samples ``z_s``

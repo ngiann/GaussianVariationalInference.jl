@@ -23,11 +23,16 @@ By maximising the approximate ELBO with respect to the variational parameters ``
 The number of samples ``S`` in the above description, can be controlled via the option `S` when calling `VI`. 
 
 
-## In more detail
+## Monitoring ELBO on an independent test set of samples
 
 This package implements variational inference using the re-parametrisation trick.
-Contrary to other flavours of this method, that repeatedly draw ``S`` new samples ``z_s`` at each iteration of the optimiser, here we draw at the start  a large number ``S`` of samples ``z_s`` and keep them fixed throughout the execution of the algorithm[^1]. This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/). Using LBFGS, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of risking overfitting to the samples ``z_s`` that happened to be drawn at the start. The package provides a mechanism for monitoring potential overfitting[^2] via the options 
-`Stest` and `test_every`, see [Evaluating the lower bound on test samples](@ref). Because of fixing the samples  ``z_s``, the algorithm doesn't not enjoy the same scalability as variational inference with stochastic gradient does. As a consequence, 
+Contrary to other flavours of this method, that repeatedly draw ``S`` new samples ``z_s`` at each iteration of the optimiser, here we draw at the start  a large number ``S`` of samples ``z_s`` and keep them fixed throughout the execution of the algorithm[^1]. This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/). Using LBFGS, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of risking overfitting to the samples ``z_s`` that happened to be drawn at the start. 
+
+The package provides a mechanism for monitoring potential overfitting[^2] via the options `Stest` and `test_every`, see [Evaluating the lower bound on test samples](@ref). Indepedently of the samples ``z_s``, a test set of ``S^{(test)}`` number of samples, denoted as ``z_s^{(test)}``, is drawn and kept kept fixed. This second set of sample is used to periodically monitor the ELBO:
+
+``\frac{1}{S^{(test)}} \sum_{s=1}^{S^{(test)}} \log p(x, \mu + C z_s^{(test)}) + \mathcal{H}[q]``,
+
+Because of fixing the samples  ``z_s``, the algorithm doesn't not enjoy the same scalability as variational inference with stochastic gradient does. As a consequence, 
 the present package is recommented for problems with relatively few parameters, e.g. 2-20 parameters perhaps.
 
 
