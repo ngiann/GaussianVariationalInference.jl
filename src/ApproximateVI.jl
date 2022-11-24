@@ -9,9 +9,6 @@ module ApproximateVI
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
-    import Distributions: logpdf, pdf, cov, mean, MvNormal
-
-
     # Core code
     
     include("interface.jl")
