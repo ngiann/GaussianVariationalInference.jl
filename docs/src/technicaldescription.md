@@ -20,6 +20,8 @@ where ``z_s\sim\mathcal{N}(0,I)`` and ``C`` is a matrix root of ``\Sigma``, i.e.
 
 By optimising the approximate lower bound with respect to the variational parameters ``\mu`` and ``C`` we obtain the approximate posterior ``q(\theta) = \mathcal{N}(\theta|\mu,CC^T)`` that offers the best Gaussian approximation to true posterior ``p(\theta|\mathcal{D})``.
 
+The number of samples ``S`` in the above description, can be controlled via the option `S` when calling `VI`. 
+
 
 ## In more detail
 
@@ -27,8 +29,7 @@ This package implements variational inference using the re-parametrisation trick
 Contrary to other flavours of this method, that repeatedly draw new samples ``z_s`` at each iteration of the optimiser, here a large number of samples ``z_s`` is drawn
  at the start and is kept fixed throughout the execution of the algorithm[^1].
 This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/
-). A big advatange is that the use of LBFGS, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of riskin
-g overfitting to the samples ``z_s`` that happened to be drawn at the start. The package provides a mechanism for monitoring potential overfitting[^2] via the options 
+). Using LBFGS, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of risking overfitting to the samples ``z_s`` that happened to be drawn at the start. The package provides a mechanism for monitoring potential overfitting[^2] via the options 
 `Stest` and `test_every`. Because of fixing the samples  ``z_s``, the algorithm doesn't not enjoy the speed of optimisation via stochastic gradient. As a consequence, 
 the present package is recommented for problems with relatively few parameters, e.g. 2-20 parameters perhaps.
 
