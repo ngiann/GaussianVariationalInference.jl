@@ -6,7 +6,7 @@
 
 # What is this?
 
-A Julia package for approximate Bayesian inference for non-conjugate probabilistic models[^1]. Currently, more documentation is added to the package. In the future it is planned to introduce mean-field approximation.
+A Julia package for approximate Bayesian inference for non-conjugate probabilistic models[^1]. Currently, more documentation is added to the package. In the future it is planned to introduce a mean-field approximation.
 
 
 
