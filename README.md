@@ -6,7 +6,7 @@
 
 # What is this?
 
-A Julia package for approximating a posterior distribution with a full-covariance Gaussian distribution[^1]. Currently, more documentation is added to the package. In the future it is planned to introduce a mean-field approximation.
+A Julia package for approximating a posterior distribution with a full-covariance Gaussian distribution by optimising a variational lower bound[^1]. Currently, more documentation is added to the package. In the future it is planned to introduce a mean-field approximation.
 
 
 
