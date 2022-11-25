@@ -1,16 +1,15 @@
 # Technical background
 
-We provide details regarding the implemented algorithm. In short, the algorithm maximises the variational lower bound, typically known as the ELBO, using the reparametrisation trick.
+We provide details regarding the implemented algorithm. In brief, the algorithm maximises the variational lower bound, typically known as the ELBO, using the reparametrisation trick.
 
 
 ## ELBO maximisation
 
-Our goal is to approximate the true (unnormalised) posterior  distribution ``p(\theta|\mathcal{D})`` with a Gaussian ``q(\theta) = \mathcal{N}(\theta|\mu,\Sigma)`` by 
-maximising the expected lower bound:
+Our goal is to approximate the true (unnormalised) posterior  distribution ``p(\theta|\mathcal{D})`` with a Gaussian ``q(\theta) = \mathcal{N}(\theta|\mu,\Sigma)``. To achieve this, we maximising the expected lower bound:
 
 ``\mathcal{L}(\mu,\Sigma) = \int q(\theta) \log p(\mathcal{D}, \theta) d\theta + \mathcal{H}[q]``,
 
-also known as the ELBO. The above integral will be in general intractable . We can make progress by approximating it with as a Monte carlo average over ``S`` number of samples ``\theta_s\sim q(\theta)``:
+also known as the ELBO. The above integral is a lower bound to the marginal likelihood ``\int p(\mathcal{D},\theta) d\theta \geq \mathcal{L}(\mu,\Sigma)`` and is in general intractable. We can make progress by approximating it with as a Monte carlo average over ``S`` number of samples ``\theta_s\sim q(\theta)``:
 
 ``\mathcal{L}(\mu,\Sigma) \approx \frac{1}{S} \sum_{s=1}^S \log p(\mathcal{D}, \theta_s) + \mathcal{H}[q]``.
 
@@ -37,20 +36,20 @@ Therefore, we expect that optimising ``\mathcal{L}_{(FS)}(\mu,C,Z)`` will yield
 approximately the same variational parameters ``µ, C`` as the optimisation of the intractable true lower bound ``\mathcal{L}(\mu,\Sigma)`` would.
 
 
-Here the samples ``z_s`` are drawn at start of the algorithm and are kept fixed throughout its execution. The proposed scheme exhibits some fluctuation as ``\mathcal{L}_{(FS)}(\mu,C)`` depends on the random set of samples ``z_s`` that happened to be drawn at the start of the algorithm. Hence, for another set of randomly drawn samples ``z_s`` the function  ``\mathcal{L}_{(FS)}(\mu,C)`` will be (hopefully only slightly) different. However, for large enough ``S`` the fluctuation due to ``z_s`` should be innocuous and optimising it should yield approximately the same variational parameters for any drawn ``z_s``.
+Here the samples ``z_s`` are drawn at start of the algorithm and are kept fixed throughout its execution. The proposed scheme exhibits some fluctuation as ``\mathcal{L}_{(FS)}(\mu,C,Z)`` depends on the random set of samples ``z_s`` that happened to be drawn at the start of the algorithm. Hence, for another set of randomly drawn samples ``z_s`` the function  ``\mathcal{L}_{(FS)}(\mu,C,Z)`` will be (hopefully only slightly) different. However, for large enough ``S`` the fluctuation due to ``z_s`` should be innocuous and optimising it should yield approximately the same variational parameters for any drawn ``z_s``.
 
 
-However, if on the other hand we choose a small value for ``S``, then the variational parameters will overly depend on the small set of samples ``z_s`` that happened to be drawn at the beginning of the algorithm. As a consequence, ``\mathcal{L}_{(FS)}(\mu,C,Z)`` will approximate ``\mathcal{L}(\mu,\Sigma)`` poorly, and the resulting posterior ``q(\theta)`` will also be a poor approximation to the true posterior. ``p(\theta|\mathcal{D})``. Hence, the variational parameters will be overadapted to the small set of samples ``z_s`` that happened to be drawn. Naturally, the question arises of how to choose a large enough ``S`` in order avoid the sitatuation where ``\mathcal{L}_{(FS)}(\mu,C,Z)`` over-adapts to  variational parameters to the samples ``z_s``. 
+However, if on the other hand we choose a small value for ``S``, then the variational parameters will overly depend on the small set of samples ``z_s`` that happened to be drawn at the beginning of the algorithm. As a consequence, ``\mathcal{L}_{(FS)}(\mu,C,Z)`` will approximate ``\mathcal{L}(\mu,\Sigma)`` poorly, and the resulting posterior ``q(\theta)`` will also be a poor approximation to the true posterior. ``p(\theta|\mathcal{D})``. Hence, the variational parameters will be overadapted to the small set of samples ``z_s`` that happened to be drawn. Naturally, the question arises of how to choose a large enough ``S`` in order avoid the sitatuation where ``\mathcal{L}_{(FS)}(\mu,C,Z)`` over-adapts the  variational parameters to the samples ``z_s``. 
 
 
 
 
 ## Monitoring ELBO on independent test set
 
-A practical answer to diagnosing whether a sufficiently high number of samples ``S`` has been chosen,is the following: at the beginning of the algorithm we draw a second independent set of samples ``Z^\prime =\{ z_1^\prime, z_2^\prime, \dots, z_S^\prime\}`` where ``S^\prime`` is preferably a number larger than ``S``. 
+A practical answer to diagnosing whether a sufficiently high number of samples ``S`` has been chosen, is the following: at the beginning of the algorithm we draw a second independent set of samples ``Z^\prime =\{ z_1^\prime, z_2^\prime, \dots, z_S^\prime\}`` where ``S^\prime`` is preferably a number larger than ``S``. 
 
-At each (or every few) iteration(s) we monitor the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)`` on the independent sample set ``Z^\prime``. If the variational parameters are not overadapting to the ``Z``, then we should see that as the lower bound ``\mathcal{L}_{(FS)}(\mu,C,Z)``  increases, the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  should also display a tendency to increase. If on the other hand the variational parameters are overfitting the drawn
-Z, then though ``\mathcal{L}_{(FS)}(\mu,C,Z)`` is increasing, we
+At each (or every few) iteration(s) we monitor the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)`` on the independent sample set ``Z^\prime``. If the variational parameters are not overadapting to the ``Z``, then we should see that as the lower bound ``\mathcal{L}_{(FS)}(\mu,C,Z)``  increases, the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  should also display a tendency to increase. If on the other hand the variational parameters are overadapting to 
+``Z``, then though ``\mathcal{L}_{(FS)}(\mu,C,Z)`` is increasing, we
 will notice that ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  is actually deteriorating. This is a clear sign that a larger ``S`` is required.
 
 The described procedure is reminiscent of monitoring the generalisation performance of a learning algorithm on a validation set during training. A significant difference, however, is that while validation sets are typically of limited size, here we can set ``S^\prime`` arbitrarily large. In practice, one may experiment with such values as e.g. ``S^\prime = 2S`` or  ``S^\prime = 10S``.
