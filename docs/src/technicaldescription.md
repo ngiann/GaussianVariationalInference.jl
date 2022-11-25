@@ -48,11 +48,14 @@ However, if on the other hand we choose a small value for ``S``, then the variat
 
 A practical answer to diagnosing whether a sufficiently high number of samples ``S`` has been chosen, is the following: at the beginning of the algorithm we draw a second independent set of samples ``Z^\prime =\{ z_1^\prime, z_2^\prime, \dots, z_S^\prime\}`` where ``S^\prime`` is preferably a number larger than ``S``. 
 
+
 At each (or every few) iteration(s) we monitor the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)`` on the independent sample set ``Z^\prime``. If the variational parameters are not overadapting to the ``Z``, then we should see that as the lower bound ``\mathcal{L}_{(FS)}(\mu,C,Z)``  increases, the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  should also display a tendency to increase. If on the other hand the variational parameters are overadapting to 
 ``Z``, then though ``\mathcal{L}_{(FS)}(\mu,C,Z)`` is increasing, we
 will notice that ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  is actually deteriorating. This is a clear sign that a larger ``S`` is required.
 
+
 The described procedure is reminiscent of monitoring the generalisation performance of a learning algorithm on a validation set during training. A significant difference, however, is that while validation sets are typically of limited size, here we can set ``S^\prime`` arbitrarily large. In practice, one may experiment with such values as e.g. ``S^\prime = 2S`` or  ``S^\prime = 10S``. We emphasise that the samples in ``Z^\prime`` are not used to optimise ELBO.
+
 
 
 
