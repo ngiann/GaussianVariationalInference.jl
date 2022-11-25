@@ -67,7 +67,7 @@ In this case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolver
 
 
 
-## Evaluating the lower bound on test samples
+## Evaluating the ELBO on test samples
 
 The options `S` specifies the number of samples to use when approximating the expected lower bound (ELBO), see [Technical background](@ref). The higher the value we use for `S`, the better the approximation to the ELBO will be, but at a higher computational cost. The lower the value we use for `S`, the faster the computation will be, but the approximation to the ELBO may be poorer. Hence, when setting `S` we need to take this trade-off into account.
 
@@ -88,5 +88,5 @@ If the test ELBO at the current iteration is small than in the previous iteratio
 
     Whenever option `Stest` is set, `test_every` must be set to.
 
-    
+
 [^1]:The implementation of the function needs to satisfy certain requirements, see [here](https://juliadiff.org/ForwardDiff.jl/stable/user/limitations/).
