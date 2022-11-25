@@ -1,6 +1,6 @@
 # Technical background
 
-We provide details on implemented algorithm. In short, the algorithm maximises the variational lower bound, typically known as the ELBO, using the reparametrisation trick.
+We provide details regarding the implemented algorithm. In short, the algorithm maximises the variational lower bound, typically known as the ELBO, using the reparametrisation trick.
 
 
 ## ELBO maximisation
