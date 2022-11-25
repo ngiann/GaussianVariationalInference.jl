@@ -67,7 +67,7 @@ the present package is recommented for problems with relatively few parameters, 
 
 
 As explained in the previous section, one may monitor the approximate ELBO on an independent set of samples ``Z^\prime`` of size ``S^\prime``. The package provides a mechanism for monitoring potential overfitting[^2] via the options `Stest` and `test_every`. Options `Stest` set the number of test samples ``S^\prime`` and `test_every` specifies how often we should monitor the approximate ELBO on ``Z^\prime``
-by evaluating ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``.
+by evaluating ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``. Please consult [Evaluating the ELBO on test samples](@ref) and the example [Monitoring ELBO](@ref).
 
 !!! note
 

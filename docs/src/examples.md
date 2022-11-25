@@ -73,7 +73,7 @@ end
 ```
 
 
-## Monitoring ELBO using `Stest` and `test_every` - **WIP**
+## Monitoring ELBO
 
 We use again as our target distribution an unnormalised Gaussian.
 ```
@@ -91,13 +91,22 @@ x₀ = randn(30)
 We set `S=100` which is a quite low number of samples for inferring a 30-dimensional posterior. To diagnose whether `S` is set sufficiently high, we also test the ELBO on an indepedent set of samples of size `Stest=3000` every `test_every=20` iterations:
 
 ```
-qlow, = VI(logp, x₀, S = 100, Stest = 3000, test_every = 10, iterations = 10_000, gradientmode = :forward)
+qlow, = VI(logp, x₀, S = 100, Stest = 3000, test_every = 10, iterations = 1000, gradientmode = :forward)
 ```
 
 During execution we should see that there is a considerable gap between the ELBO and the test ELBO and that the test ELBO does not improve much. We now set `S=1000`:
 
 ```
-qhigh, = VI(logp, x₀, S = 1000, Stest = 3000, test_every = 10, iterations = 10_000, gradientmode = :forward)
+qhigh, = VI(logp, x₀, S = 1000, Stest = 3000, test_every = 10, iterations = 1000, gradientmode = :forward)
 ```
 
-In this case, we should see during execution that the reported ELBO is much closer to the test ELBO and the latter shows improvement.
+In this case, we should see during execution that the reported ELBO is much closer to the test ELBO and the latter shows improvement. The improvement should also be visible in that the covariance of `qhigh` is closer to the true covariance:
+
+```
+norm(cov(qlow)  - Σ)    # this should be higher than value below
+norm(cov(qhigh) - Σ)    # this should be lower  than value above
+```
+
+!!! note
+
+    The results of this example depend strongly on the covariance ``\Sigma`` that we happened to sample.
