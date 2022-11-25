@@ -33,6 +33,7 @@ contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="r
 ```
 
 The filled blue contours correspond to the exponentiated `logp`, and the red contours correspond to the produced Gaussian approximation `q`.
+
 ![image](docs/src/exampleproblem1.png)
 
 For further information, please consult the documentation.
