@@ -77,10 +77,27 @@ end
 
 We use again as our target distribution an unnormalised Gaussian.
 ```
-logp(x) = -sum(x.*x) / 2
+using ApproximateVI
 
-# implicitly specifies that the log-posterior is 30-dimensional
+# instantiate a covariance matrix
+A = 0.1*randn(30, 30); Σ = A*A'
+
+logp(x) = -sum(x'*(Σ\x)) / 2
+
+# initial point
 x₀ = randn(30)
 ```
 
-We set `S=30` and test on an indepedent set of samples ``z_s``
+We set `S=100` which is a quite low number of samples for inferring a 30-dimensional posterior. To diagnose whether `S` is set sufficiently high, we also test the ELBO on an indepedent set of samples of size `Stest=3000` every `test_every=20` iterations:
+
+```
+qlow, = VI(logp, x₀, S = 100, Stest = 3000, test_every = 10, iterations = 10_000, gradientmode = :forward)
+```
+
+During execution we should see that there is a considerable gap between the ELBO and the test ELBO and that the test ELBO does not improve much. We now set `S=1000`:
+
+```
+qhigh, = VI(logp, x₀, S = 1000, Stest = 3000, test_every = 10, iterations = 10_000, gradientmode = :forward)
+```
+
+In this case, we should see during execution that the reported ELBO is much closer to the test ELBO and the latter shows improvement.
