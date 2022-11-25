@@ -45,7 +45,7 @@ However, if on the other hand we choose a small value for ``S``, then the variat
 
 
 
-## Monitoring ELBO on an independent test set of samples
+## Monitoring ELBO on independent test set
 
 A practical answer to diagnosing whether a sufficiently high number of samples ``S`` has been chosen,is the following: at the beginning of the algorithm we draw a second independent set of samples ``Z^\prime =\{ z_1^\prime, z_2^\prime, \dots, z_S^\prime\}`` where ``S^\prime`` is preferably a number larger than ``S``. 
 
@@ -76,7 +76,7 @@ by evaluating ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``.
 
 ## Literature
 
-The work was independently developed and published [here](https://doi.org/10.1007/s10044-015-0496-9) [(Arxiv link)](https://arxiv.org/pdf/1906.04507.pdf).
+The work was independently developed and published [here](https://doi.org/10.1007/s10044-015-0496-9), [(Arxiv link)](https://arxiv.org/pdf/1906.04507.pdf).
 Of course, the method has been widely popularised by the works [Doubly Stochastic Variational Bayes for non-Conjugate Inference](http://proceedings.mlr.press/v32/titsi
 as14.pdf) and [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114).
 The method seems to have appeared earlier in [Fixed-Form Variational Posterior Approximation through Stochastic Linear Regression](https://arxiv.org/abs/1206.6679) and again later in [A comparison of variational approximations for fast inference in mixed logit models](https://link.springer.com/article/10.1007%2Fs00180-015-0638-y) and perhaps in other publications too...
