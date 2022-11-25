@@ -79,7 +79,7 @@ Monitoring the ELBO this way is an effective way of detecting whether `S` has be
 The following code snippet shows how to specify the options `Stest` and `test_every`:
 ```
 # Use 2000 test samples and report test ELBO every 20 iterations
-q, logev = VI(logp, x₀, S = 200, iterations = 3000, Stest = 2000, test_every = 20)
+q, logev = VI(logp, x₀, S = 200, iterations = 1000, Stest = 2000, test_every = 20)
 ```
 
 If the test ELBO at the current iteration is small than in the previous iteration, it is printed out in red colour. 
