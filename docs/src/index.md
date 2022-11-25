@@ -1,6 +1,6 @@
 ## What's this package for?
 
-This package implements a particular type of approximate Bayesian inference: it approximates a posterior distribution with a full-covariance Gaussian distribution[^1].
+This package implements a particular type of approximate Bayesian inference: it approximates a posterior distribution with a full-covariance Gaussian distribution[^1]. We recommend using this package for problems with a relatively small number of parameters, 2-20 parameters perhaps.
 
 
 
