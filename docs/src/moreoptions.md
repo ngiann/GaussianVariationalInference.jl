@@ -84,5 +84,9 @@ q, logev = VI(logp, x₀, S = 200, iterations = 3000, Stest = 2000, test_every =
 
 If the test ELBO at the current iteration is small than in the previous iteration, it is printed out in red colour. 
 
+!!! note
 
+    Whenever option `Stest` is set, `test_every` must be set to.
+
+    
 [^1]:The implementation of the function needs to satisfy certain requirements, see [here](https://juliadiff.org/ForwardDiff.jl/stable/user/limitations/).
