@@ -52,7 +52,7 @@ At each (or every few) iteration(s) we monitor the quantity ``\mathcal{L}_{(FS)}
 ``Z``, then though ``\mathcal{L}_{(FS)}(\mu,C,Z)`` is increasing, we
 will notice that ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  is actually deteriorating. This is a clear sign that a larger ``S`` is required.
 
-The described procedure is reminiscent of monitoring the generalisation performance of a learning algorithm on a validation set during training. A significant difference, however, is that while validation sets are typically of limited size, here we can set ``S^\prime`` arbitrarily large. In practice, one may experiment with such values as e.g. ``S^\prime = 2S`` or  ``S^\prime = 10S``.
+The described procedure is reminiscent of monitoring the generalisation performance of a learning algorithm on a validation set during training. A significant difference, however, is that while validation sets are typically of limited size, here we can set ``S^\prime`` arbitrarily large. In practice, one may experiment with such values as e.g. ``S^\prime = 2S`` or  ``S^\prime = 10S``. We emphasise that the samples in ``Z^\prime`` are not used to optimise ELBO.
 
 
 
