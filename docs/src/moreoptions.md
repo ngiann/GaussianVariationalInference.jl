@@ -1,5 +1,3 @@
-# More options
-
 ## Specifying gradient options
 
 Function `VI` allows the user to obtain a Gaussian approximation with minimal requirements. The user only needs to code a function `logp` that implements the log-posterior, provide an initial starting point `x₀` and call:
