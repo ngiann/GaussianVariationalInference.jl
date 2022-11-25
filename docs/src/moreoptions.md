@@ -69,7 +69,7 @@ In this case, `VI` will use internally the [`Optim.LBFGS`](https://julianlsolver
 
 ## Evaluating the lower bound on test samples - **WIP**
 
-The options `S` specifies the number of samples to use when approximating the expected lower bound, see [Technical description](@ref). The higher the value we use for `S`, the better the approximation will be, however, at a higher computational cost. The lower the value we use for `S`, the faster the computation will be, but the approximation may be poorer. Hence, when setting `S` we need to take this trade-off into account.
+The options `S` specifies the number of samples to use when approximating the expected lower bound, see [Technical background](@ref). The higher the value we use for `S`, the better the approximation will be, however, at a higher computational cost. The lower the value we use for `S`, the faster the computation will be, but the approximation may be poorer. Hence, when setting `S` we need to take this trade-off into account.
 
 
 Function `VI` offers a mechanism that informs us whether the value `S` is set to a sufficiently high value. This mechanism makes use of two options, namely `Stest` and `test_every`. Option `Stest` defines the number of test samples used exclusively for evaluating (*not optimising!*) the expected lower bound (ELBO) every `test_every` number of iterations, see [ELBO maximisation](@ref). Monitoring the ELBO this way is an effective way of detecting whether `S` has been set sufficiently high.

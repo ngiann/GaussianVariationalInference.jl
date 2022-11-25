@@ -1,5 +1,3 @@
-# Examples
-
 ## Infer posterior of GP hyperparameters
 
 In the following we approximate the intractable posterior of the hyperparameters of a Gaussian process. In order to reproduce this example, certain packages need to be independently installed.
