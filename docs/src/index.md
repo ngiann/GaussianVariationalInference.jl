@@ -3,7 +3,7 @@
 
 ## What's this package for?
 
-This package implements approximate Bayesian inference: it approximates a posterior distribution with a full-covariance Gaussian distribution[^1].
+This package implements a particular type of approximate Bayesian inference: it approximates a posterior distribution with a full-covariance Gaussian distribution[^1].
 
 
 
@@ -29,10 +29,11 @@ contour(x, x, map(x -> exp(logp(collect(x))), Iterators.product(x, x))', fill=tr
 contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="red", alpha=0.2)
 ```
 
-A plot similar to the one below should appear.
+A plot similar to the one below should appear. The filled blue contours correspond to the distribution being approximated, here the exponentiated `logp`, and the red contours correspond to the produced Gaussian approximation `q`.
+
 ![exampleproblem1](exampleproblem1.png)
 
-Options `S` above specifies the number of samples to use in order to approximate the ELBO (see [Technical description](@ref)), i.e. the objective that which maximised produces the best Gaussian approximation. The higher the value of `S` is set, the better the approximation of the ELBO, however, at a higher computational cost. The lower the value of `S` is set, the faster the method, but risking a poorer approximation of the ELBO.
+Options `S` above specifies the number of samples to use in order to approximate the ELBO (see [Technical description](@ref)), i.e. the objective that which maximised produces the best Gaussian approximation. The higher the value of `S` is set, the better the approximation of the ELBO, however, at a higher computational cost. The lower the value of `S` is set, the faster the method, but the poorer the approximation of the ELBO. Options `iterations` specifies the number of iterations that the internal optimiser is run when maximising the ELBO. Option `show_every` specifies how often the progress of the ELBO maximisation should be reported.
 
 
 

@@ -75,7 +75,7 @@ end
 ```
 
 
-## Monitoring ELBO using `Stest` and `test_every`
+## Monitoring ELBO using `Stest` and `test_every` - **WIP**
 
 We use again as our target distribution an unnormalised Gaussian.
 ```
