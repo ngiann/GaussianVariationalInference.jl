@@ -38,7 +38,7 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1) where T
+function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     # check validity of arguments
@@ -99,7 +99,7 @@ function VI(logp::Function, μ::Array{T, 1}, Σ::Array{T, 2}; gradlogp = default
 end
 
 
-function VI(logp::Function, μ::Array{T, 1}, σ²::T = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1) where T
+function VI(logp::Function, μ::AbstractVector, σ² = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
 
     @argcheck σ² > 0
     
@@ -114,7 +114,7 @@ function VI(logp::Function, μ::Array{T, 1}, σ²::T = 0.1; gradlogp = defaultgr
 end
 
 
-function VI(logp::Function, initgaussian::MvNormal; gradlogp = defaultgradient(mean(initgaussian)), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int = 1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1,  test_every::Int = -1)
+function VI(logp::Function, initgaussian::AbstractMvNormal; gradlogp = defaultgradient(mean(initgaussian)), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int = 1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1,  test_every::Int = -1)
 
     VI(logp, mean(initgaussian), cov(initgaussian); gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
