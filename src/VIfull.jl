@@ -1,4 +1,4 @@
-function coreVIfull(logp::Function, μ₀::Array{T, 1}, Σ₀::Array{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
 
     D = length(μ₀)
 
