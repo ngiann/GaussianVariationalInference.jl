@@ -34,6 +34,11 @@ contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="r
 
 A plot similar to the one below should appear. The filled blue contours correspond to the exponentiated `logp`, and the red contours correspond to the produced Gaussian approximation `q`.
 
+## Related, useful packages
+
+- [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl): A library for variational Bayesian inference in Julia.
+- [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl): Implementation of robust dynamic Hamiltonian Monte Carlo methods in Julia.
+
 ![image](docs/src/exampleproblem1.png)
 
 For further information, please consult the documentation.
