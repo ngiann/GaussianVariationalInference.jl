@@ -14,7 +14,7 @@ A Julia package for approximating a posterior distribution with a full-covarianc
 
 The package is fairly easy to use. Currently, the only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
 
-Consider approximating a target density given by a three-component mixture model:
+Consider approximating the following target density:
 
 ```
 using ApproximateVI
