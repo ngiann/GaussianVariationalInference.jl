@@ -1,4 +1,7 @@
-# ApproximateVI.jl
+<h1 align="center">ApproximateVI.jl</h1>
+<p align="center">
+<img src="https://github.com/ngiann/ApproximateVI.jl/blob/4d604d2f42f74c97a84685ddf13e0a9d05ff76e7/docs/src/assets/logo.png" width="240" height="180">
+</p>
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/ApproximateVI.jl)
