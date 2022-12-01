@@ -22,7 +22,7 @@ Consider approximating the following target density:
 ```
 using ApproximateVI
 
-logp = exampleproblem1() # target log-posterior to approximate
+logp = exampleproblem1() # target log-posterior density to approximate
 x₀ = randn(2)            # random initial mean for approximating Gaussian
 q, logev = VI(logp, randn(2), S = 100, iterations = 10_000, show_every = 50)
 
