@@ -35,7 +35,7 @@ contour(x, x, map(x -> exp(logp(collect(x))), Iterators.product(x, x))', fill=tr
 contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', color="red", alpha=0.2)
 ```
 
-A plot similar to the one below should appear. The filled blue contours correspond to the exponentiated `logp`, and the red contours correspond to the produced Gaussian approximation `q`.
+A plot similar to the one below should appear. The  blue filled contours correspond to the exponentiated `logp`, and the red contours correspond to the produced Gaussian approximation `q`.
 
 ![image](docs/src/exampleproblem1.png)
 
