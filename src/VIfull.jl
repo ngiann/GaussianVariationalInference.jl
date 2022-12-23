@@ -6,30 +6,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     # generate latent variables
     #----------------------------------------------------
 
-    Ztrain = generatelatentZ(S = S,     D = D, seed = seed)
-
-    Ztest  = generatelatentZ(S = Stest, D = D, seed = seed + 1)
-
-
-    #----------------------------------------------------
-    # We want to keep track of the best variational 
-    # parameters encountered during the optimisation of
-    # the elbo. Unfortunately, the otherwise superb
-    # package Optim.jl does not provide a consistent way
-    # accross different optimisers to do this.
-    #----------------------------------------------------
-    
-    bestμ, bestC, bestelbo = zeros(D), zeros(D, D), -Inf
-
-    function updatebestsofar(ℓ, μ, C)
-
-        if bestelbo < ℓ
-            bestelbo = ℓ
-            bestμ .= μ
-            bestC .= C
-        end
-
-    end
+    Ztrain = generatelatentZ(S = S, D = D, seed = seed)
 
 
     #----------------------------------------------------
@@ -59,7 +36,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
         local ℓ = elbo(μ, C, Ztrain)
 
-        updatebestsofar(ℓ, μ, C)
+        update!(trackELBO; newelbo = ℓ, μ = μ, C = C)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -148,29 +125,26 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     # Define callback function called at each iteration
     #----------------------------------------------------
 
-    # keep track of iterations and best elbo on test samples
+    # We want to keep track of the best variational 
+    # parameters encountered during the optimisation of
+    # the elbo. Unfortunately, the otherwise superb
+    # package Optim.jl does not provide a consistent way
+    # accross different optimisers to do this.
 
-    countiterations = 0
     
-    currelbotest, prvelbotest = -Inf, -Inf
+    trackELBO = RecordELBOProgress(; μ = zeros(D), C = zeros(D,D), 
+                                     Stest = Stest,
+                                     show_every = show_every,
+                                     test_every = test_every, 
+                                     elbo = elbo, seed = seed)
     
-
-    function callback(_)
-        
-        countiterations += 1
-
-        currelbotest, prvelbotest = report(countiterations, show_every, test_every, Stest, elbo, bestμ, bestC, Ztest, bestelbo, currelbotest, prvelbotest)
-        
-        return false
-
-    end
 
 
     #----------------------------------------------------
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = callback)
+    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
     result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(cholesky(Σ₀).L)], optimiser, options)
 

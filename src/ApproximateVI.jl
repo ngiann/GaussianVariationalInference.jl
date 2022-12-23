@@ -23,10 +23,11 @@ module ApproximateVI
     
     # Utilities
     
-    include("util/report.jl")
+    # include("util/report.jl")
     include("util/generatelatentZ.jl")
     include("util/defaultgradient.jl")
     include("util/verifygradient.jl")
+    include("util/RecordELBOProgress.jl")
 
 
     # Example problems
