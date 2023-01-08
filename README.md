@@ -15,7 +15,7 @@ A Julia package for approximating a posterior distribution with a full-covarianc
 
 ## Basic usage
 
-To install this package, please switch in the REPL into package mode and add using `add ApproximateVI`.
+To install this package, please switch in the Julia REPL into package mode and add using `add ApproximateVI`.
 
 The package is fairly easy to use. Currently, the only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
 
