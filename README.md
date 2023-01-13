@@ -43,6 +43,7 @@ A plot similar to the one below should appear. The  blue filled contours corresp
 
 For further information, please consult the documentation.
 
+Should you use the software for academic purposes use, please kindly consider citing the relevant paper[^1].
 
 ## Related, useful packages
 
