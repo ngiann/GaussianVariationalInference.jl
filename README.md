@@ -9,7 +9,7 @@
 
 # What is this?
 
-A Julia package for approximating a posterior distribution with a full-covariance Gaussian distribution by optimising a variational lower bound[^1]. In the near future it is planned to introduce a method for mean-field approximation. We recommend using this package for problems with a relatively small number of parameters, 2-20 parameters perhaps.
+A Julia package for approximating a posterior distribution with a full-covariance Gaussian distribution by optimising a variational lower bound[^1]. In the near future it is planned to introduce a method for mean-field approximation. We recommend using this package for problems with a relatively small number of parameters, 2-20 parameters perhaps. The main focus of this package is to provide a method for approximating a target posterior with a Gaussian that does not need parameter tuning and converges reliably.
 
 
 
