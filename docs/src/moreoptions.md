@@ -89,4 +89,9 @@ If the test ELBO at the current iteration is small than in the previous iteratio
     Whenever option `Stest` is set, `test_every` must be set to.
 
 
+## Parallel evaluation
+
+The package makes use of [Transducers.jl](https://github.com/JuliaFolds/Transducers.jl) in order to parallelise the evaluation of the lower bound and its gradient on a number of threads. In order to make use of this feature, simply start julia by specifying a number of threads e.g. `julia -t4`.
+
+
 [^1]:The implementation of the function needs to satisfy certain requirements, see [here](https://juliadiff.org/ForwardDiff.jl/stable/user/limitations/).
