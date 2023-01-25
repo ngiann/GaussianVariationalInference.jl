@@ -7,7 +7,7 @@
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/GaussianVariationalInference.jl)
 ![GitHub](https://img.shields.io/github/license/ngiann/GaussianVariationalInference.jl)
 
-(Package was previously named Approximate.VI)
+(Package was previously named ApproximateVI.jl)
 
 # What is this?
 
