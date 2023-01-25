@@ -38,7 +38,7 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, jac_transform = defaultjactransform(μ), seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     # check validity of arguments
@@ -75,6 +75,29 @@ function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = d
             
             error("provided gradient returns NaN when evaluate at provided μ")
 
+        end
+
+
+        # check user provided gradient against gradient calculated via automatic differention via ForwardDiff.jl
+
+        if numerical_verification
+
+            local user_grad, autodiff_grad = gradlogp(μ), ForwardDiff.gradient(logp, μ)
+        
+            display([user_grad autodiff_grad])
+
+            @printf("Left column above is the user provided gradient evaluated at μ\n")
+            
+            @printf("Right column above is user AD gradient evaluated at μ\n")
+            
+            local discr = maximum(abs.(user_grad .- autodiff_grad))
+
+            local msg = @sprintf("Greatest elementwise difference in absolute magnitude is %.8f\n\n", discr)
+            
+            local clr = discr > 1e-4 ? :red : :cyan
+
+            print(Crayon(foreground = clr, bold=true), msg, Crayon(reset = true))
+            
         end
 
         optimiser = LBFGS() # optimiser to be used with user provided gradient
