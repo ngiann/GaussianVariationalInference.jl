@@ -1,11 +1,11 @@
-using ApproximateVI, LinearAlgebra, Distributions
+using GaussianVariationalInference, LinearAlgebra, Distributions
 using Test
 
 include("testentropy.jl")
 
 include("testgeneratelatentZ.jl")
 
-@testset "ApproximateVI.jl" begin
+@testset "GaussianVariationalInference.jl" begin
 
     testentropy()
 

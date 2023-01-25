@@ -80,7 +80,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
         local aux = z -> logp(μ .+ C*z)
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + ApproximateVI.entropy(C)
+        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(C)
 
     end
 

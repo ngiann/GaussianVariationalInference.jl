@@ -11,7 +11,7 @@ At the very minimum, the user needs to provide a function that codes the (unnorm
 
 Let's consider the following toy example:
 ```
-using ApproximateVI
+using GaussianVariationalInference
 
 logp = exampleproblem1() # target log-posterior to approximate
 x₀ = randn(2)            # random initial mean for approximating Gaussian

@@ -15,7 +15,7 @@ git-tree-sha1 = "195c5505521008abea5aee4f96930717958eac6f"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 version = "3.4.0"
 
-[[deps.ApproximateVI]]
+[[deps.GaussianVariationalInference]]
 deps = ["ArgCheck", "Crayons", "Distributions", "ForwardDiff", "LinearAlgebra", "Optim", "Printf", "Random", "Statistics", "Transducers"]
 git-tree-sha1 = "09fe64b4bbbdf2efd009fa2271ecfebb3605432a"
 uuid = "e67a2193-b68a-469d-be77-24baf3975c82"

@@ -1,7 +1,7 @@
-name = "ApproximateVI"
-uuid = "e67a2193-b68a-469d-be77-24baf3975c82"
+name = "GaussianVariationalInference"
+uuid = "f96f1e2a-1be0-483a-ac4e-37f33550e2cb"
 authors = ["Nikos Gianniotis <ngiann@gmail.com>"]
-version = "0.1.9"
+version = "0.2.0"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"

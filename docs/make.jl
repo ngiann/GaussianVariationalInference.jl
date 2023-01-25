@@ -1,7 +1,7 @@
-using Documenter, ApproximateVI
+using Documenter, GaussianVariationalInference
 
 makedocs(
-    sitename = "ApproximateVI",
+    sitename = "GaussianVariationalInference",
     format = Documenter.HTML(; prettyurls = get(ENV, "CI", nothing) == "true"),
     clean = true,
     authors = "Nikos Gianniotis",
@@ -16,5 +16,5 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 deploydocs(
-    repo = "https://github.com/ngiann/ApproximateVI.jl",
+    repo = "https://github.com/ngiann/GaussianVariationalInference.jl",
 )

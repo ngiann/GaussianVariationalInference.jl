@@ -4,7 +4,7 @@ In the following we approximate the intractable posterior of the hyperparameters
 
 
 ```
-using ApproximateVI, Printf
+using GaussianVariationalInference, Printf
 using AbstractGPs, PyPlot, LinearAlgebra # These packages need to be independently installed
 
 
@@ -77,7 +77,7 @@ end
 
 We use again as our target distribution an unnormalised Gaussian.
 ```
-using ApproximateVI
+using GaussianVariationalInference
 
 # instantiate a covariance matrix
 A = 0.1*randn(30, 30); Σ = A*A'

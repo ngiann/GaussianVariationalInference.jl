@@ -1,7 +1,7 @@
 """
 Approximates unnormalised posterior with Gaussian distribution
 """
-module ApproximateVI
+module GaussianVariationalInference
 
     using Transducers
 

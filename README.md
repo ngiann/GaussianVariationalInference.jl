@@ -1,11 +1,11 @@
-<h1 align="center">ApproximateVI.jl</h1>
+<h1 align="center">GaussianVariationalInference.jl</h1>
 <p align="center">
-<img src="https://github.com/ngiann/ApproximateVI.jl/blob/4d604d2f42f74c97a84685ddf13e0a9d05ff76e7/docs/src/assets/logo.png" width="192" height="144">
+<img src="https://github.com/ngiann/GaussianVariationalInference.jl/blob/4d604d2f42f74c97a84685ddf13e0a9d05ff76e7/docs/src/assets/logo.png" width="192" height="144">
 </p>
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
-[![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/ApproximateVI.jl)
-![GitHub](https://img.shields.io/github/license/ngiann/approximateVI.jl)
+[![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/GaussianVariationalInference.jl)
+![GitHub](https://img.shields.io/github/license/ngiann/GaussianVariationalInference.jl)
 
 # What is this?
 
@@ -15,14 +15,14 @@ A Julia package for approximating a posterior distribution with a full-covarianc
 
 ## Basic usage
 
-To install this package, please switch in the Julia REPL into package mode and add using `add ApproximateVI`.
+To install this package, please switch in the Julia REPL into package mode and add using `add GaussianVariationalInference`.
 
 The package is fairly easy to use. Currently, the only function of interest to the user is `VI`. At the very minimum, the user needs to provide a function that codes the joint log-likelihood function.
 
 Consider approximating the following target density:
 
 ```
-using ApproximateVI
+using GaussianVariationalInference
 
 logp = exampleproblem1() # target log-posterior density to approximate
 x₀ = randn(2)            # random initial mean for approximating Gaussian

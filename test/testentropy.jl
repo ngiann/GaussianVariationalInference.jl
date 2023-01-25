@@ -7,20 +7,20 @@ function testentropy()
   Σ = A*A'
   μ = randn(D)
 
-  @test Distributions.entropy(MvNormal(μ, Σ)) ≈ ApproximateVI.entropy(A)
+  @test Distributions.entropy(MvNormal(μ, Σ)) ≈ GaussianVariationalInference.entropy(A)
 
   D = 11
   A = randn(D)
   Σ = Diagonal(A.^2)
   μ = randn(D)
 
-  @test Distributions.entropy(MvNormal(μ, Σ)) ≈ ApproximateVI.entropy(A)
+  @test Distributions.entropy(MvNormal(μ, Σ)) ≈ GaussianVariationalInference.entropy(A)
 
 
   σ = rand()+1e-4
   μ = randn()
 
-  @test Distributions.entropy(Normal(μ, σ)) ≈ ApproximateVI.entropy(σ)
+  @test Distributions.entropy(Normal(μ, σ)) ≈ GaussianVariationalInference.entropy(σ)
 
 
 end
