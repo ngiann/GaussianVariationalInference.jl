@@ -1,4 +1,4 @@
-function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform) where T
 
     D = length(μ₀)
 
@@ -7,6 +7,13 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     #----------------------------------------------------
 
     Ztrain = generatelatentZ(S = S, D = D, seed = seed)
+
+
+    #----------------------------------------------------
+    # Define jacobian of transformation via AD
+    #----------------------------------------------------
+
+    jac_transform = transform == identity ? Matrix(I, D, D) : x -> ForwardDiff.jacobian(transform, x)
 
 
     #----------------------------------------------------
@@ -78,9 +85,22 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
     function elbo(μ, C, Z)
 
-        local aux = z -> logp(μ .+ C*z)
+        
+        local ℋ = GaussianVariationalInference.entropy(C)
+        
+        if transform !== identity
+            
+            local auxentropy = z -> logabsdet(jac_transform(μ .+ C*z))[1]
+            
+            ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
+            
+        end
+        
+        local auxexpectedlogl = z -> logp(transform(μ .+ C*z))
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(C)
+        local Elogl = Transducers.foldxt(+, Map(auxexpectedlogl),  Z) / length(Z)
+        
+        return Elogl + ℋ
 
     end
 

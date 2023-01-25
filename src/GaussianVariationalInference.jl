@@ -9,6 +9,8 @@ module GaussianVariationalInference
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
+    using MiscUtil
+
     # Core code
     
     include("interface.jl")
@@ -33,12 +35,13 @@ module GaussianVariationalInference
     # Example problems
     
     include("Examples/exampleproblem1.jl")
-
-    
+    include("Examples/verificationexample1.jl")
+    include("Examples/verificationexample2.jl")
+    include("Examples/verificationexample3.jl")
 
     export VI #, VIdiag, VIfixedcov, MVI, laplace
     
-    export exampleproblem1
+    export exampleproblem1, verificationexample1, verificationexample2, verificationexample3
 
     # Re-export 
     export cov, mean, pdf, logpdf

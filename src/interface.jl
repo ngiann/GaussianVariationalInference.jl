@@ -38,7 +38,7 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, jac_transform = defaultjactransform(μ), seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     # check validity of arguments
@@ -113,16 +113,27 @@ function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = d
     end
 
 
+    if transform !== identity
+
+        local msg = @sprintf("A transform has been specified. Only supported optimisation for now is :gradientfree for now.\n")
+        
+        print(Crayon(foreground = :yellow, bold=true), msg, Crayon(reset = true))
+
+        gradientmode == :gradientfree
+
+    end
+    
+
     # Call actual algorithm
 
     @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
 
-    coreVIfull(logp, μ, Σ; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    coreVIfull(logp, μ, Σ; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, transform = transform)
 
 end
 
 
-function VI(logp::Function, μ::AbstractVector, σ² = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::AbstractVector, σ² = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
 
     @argcheck σ² > 0
     
@@ -132,7 +143,7 @@ function VI(logp::Function, μ::AbstractVector, σ² = 0.1; gradlogp = defaultgr
     
     Σ = Matrix(σ²*I, length(μ), length(μ))
 
-    VI(logp, μ, Σ; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VI(logp, μ, Σ; gradlogp = gradlogp, gradientmode = gradientmode, transform = transform, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
 end
 
