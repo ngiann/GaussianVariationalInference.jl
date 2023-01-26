@@ -13,17 +13,17 @@ julia> contour!(x, x, map(x -> pdf(q,(collect(x))), Iterators.product(x, x))', c
 """
 function verificationexample3()
    
-    g(x) = invtransformbetween(x, 0, 6)
+    g(x) = invtransformbetween.(x, 0, 6)
 
-    f(x) = transformbetween(x, 0, 6)
+    f(x) = transformbetween.(x, 0, 6)
 
     basedensity = MvNormal([1;3], [0.5 0.4; 0.4 1])
 
-    jac(x) = ForwardDiff.jacobian(x->g.(x), x)
+    jac(x) = ForwardDiff.jacobian(x->g(x), x)
 
-    log_transformeddensity =  x-> logpdf(basedensity, g.(x)) + logabsdet(jac(x))[1]
+    log_transformeddensity =  x-> logpdf(basedensity, g(x)) + logabsdet(jac(x))[1]
 
-    sample() = f.(rand(basedensity))
+    sample() = f(rand(basedensity))
     
     return log_transformeddensity, sample, f, g
     
