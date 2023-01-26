@@ -7,7 +7,7 @@ module GaussianVariationalInference
 
     using ArgCheck, Printf, Crayons
 
-    using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
+    using LinearAlgebra, Random, Optim, ForwardDiff, Distributions, StatsFuns
 
     using MiscUtil
 
@@ -30,6 +30,7 @@ module GaussianVariationalInference
     include("util/defaultgradient.jl")
     include("util/verifygradient.jl")
     include("util/RecordELBOProgress.jl")
+    include("util/importancesampling.jl")
 
 
     # Example problems
@@ -45,6 +46,8 @@ module GaussianVariationalInference
     include("Examples/verificationexample3.jl")
 
     export VI #, VIdiag, VIfixedcov, MVI, laplace
+
+    export importancesampling
     
     export exampleproblem1, exampleproblem2, verificationexample1, verificationexample2, verificationexample3
 
