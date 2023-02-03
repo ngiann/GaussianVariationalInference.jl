@@ -206,12 +206,12 @@ end
 
 
 
-function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp = defaultgradient(μ), transform = identity, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp = defaultgradient(μ), transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
 
-    coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = NelderMead(), iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+    coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seed+1, S = S, test_every = test_every, optimiser = NelderMead(), iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
 
 end
 

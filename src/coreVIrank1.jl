@@ -1,4 +1,4 @@
-function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform) where T
+function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
 
     D = length(μ₀); @assert(D == size(C₀, 1) == size(C₀, 2))
 
@@ -126,7 +126,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     function elbo_grad(μ, u, v, Z)
 
-        local  C = getcovroot(C₀, u, v)
+        local C = getcovroot(C₀, u, v)
 
         local aux = z -> partial_elbo_grad(μ, C, u, v, z)
         
@@ -134,13 +134,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
         # entropy contribution to covariance
 
-        local gu_entr = C' \ v
-        
-        gradμuv[D+1:2D] += gu_entr
+        gradμuv[D+1:2D] += C' \ v
 
-        local gv_entr = C \ u
-        
-        gradμuv[2D+1:3D] += gv_entr
+        gradμuv[2D+1:3D] += C \ u
         
         return gradμuv
 
@@ -186,12 +182,11 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # package Optim.jl does not provide a consistent way
     # accross different optimisers to do this.
 
-    
     trackELBO = RecordELBOProgress(; μ = zeros(D), C = zeros(D,D), 
                                      Stest = Stest,
                                      show_every = show_every,
                                      test_every = test_every, 
-                                     elbo = elbo, seed = seed)
+                                     elbo = elbo, seed = seedtest)
     
 
 
@@ -201,7 +196,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     options = Optim.Options(extended_trace = false, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 0.01*randn(2D)], LBFGS(), options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(2D)], LBFGS(), options)
 
     μopt, uopt, vopt = unpack(result.minimizer)
 
@@ -212,7 +207,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     Copt = getcovroot(C₀, uopt, vopt)
 
-    Σopt = getcov(C₀, uopt, vopt)
+    # Σopt = getcov(C₀, uopt, vopt)
 
     return μopt, Copt, elbo(μopt, Copt, Ztrain)
 
