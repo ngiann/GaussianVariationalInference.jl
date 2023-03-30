@@ -9,10 +9,13 @@ module GaussianVariationalInference
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
+    using Zygote
+    
     # Core code
     
     include("interface.jl")
     include("VIfull.jl")
+    include("coreVIrank1.jl")
     include("entropy.jl")
        
     # include("VIdiag.jl")
@@ -29,6 +32,9 @@ module GaussianVariationalInference
     include("util/verifygradient.jl")
     include("util/RecordELBOProgress.jl")
 
+    # Verification
+    include("gradient_derivation/logdet_derivation.jl")
+
 
     # Example problems
     
@@ -36,9 +42,11 @@ module GaussianVariationalInference
 
     
 
-    export VI #, VIdiag, VIfixedcov, MVI, laplace
+    export VI, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
     
     export exampleproblem1
+
+    export logdet_derivation
 
     # Re-export 
     export cov, mean, pdf, logpdf
