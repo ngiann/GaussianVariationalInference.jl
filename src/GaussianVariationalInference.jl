@@ -9,6 +9,8 @@ module GaussianVariationalInference
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
+    using Zygote
+    
     # Core code
     
     include("interface.jl")

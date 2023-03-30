@@ -69,6 +69,12 @@ function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = d
 
         optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
 
+    elseif gradientmode == :zygote
+        
+            gradlogp = x -> Zygote.gradient(logp, x)[1]
+    
+            optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
+    
     elseif gradientmode == :provided
 
         if any(isnan.(gradlogp(μ)))
