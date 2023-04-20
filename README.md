@@ -45,7 +45,7 @@ For further information, please consult the documentation.
 
 Should you use the software for academic purposes, please kindly consider citing the relevant paper[^1].
 
-## Related, useful packages
+## Related packages
 
 - [AdvancedVI.jl](https://github.com/TuringLang/AdvancedVI.jl): A library for variational Bayesian inference in Julia.
 - [DynamicHMC.jl](https://github.com/tpapp/DynamicHMC.jl): Implementation of robust dynamic Hamiltonian Monte Carlo methods in Julia.
