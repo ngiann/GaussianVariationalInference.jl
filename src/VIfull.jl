@@ -157,6 +157,6 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
     Σopt = getcov(Copt)
 
-    return MvNormal(μopt, Σopt), elbo(μopt, Copt, Ztrain)
+    return MvNormal(μopt, Σopt), elbo(μopt, Copt, Ztrain), Copt
 
 end
