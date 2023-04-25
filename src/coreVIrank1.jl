@@ -196,7 +196,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     options = Optim.Options(extended_trace = false, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(2D)], LBFGS(), options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(2D)], optimiser, options)
 
     μopt, uopt, vopt = unpack(result.minimizer)
 
