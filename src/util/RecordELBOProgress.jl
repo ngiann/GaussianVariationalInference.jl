@@ -71,11 +71,11 @@ function (p::RecordELBOProgress)(_) # used as callback
 
         if currelbotest > p.testelbohistory[end]
 
-            print(Crayon(foreground = :white, bold=false),  @sprintf("%4.6f\n", currelbotest))
+            print(Crayon(foreground = :white, bold=false),  @sprintf("%4.6f\n", currelbotest), Crayon(reset = true))
 
         else
             
-            print(Crayon(foreground = :red, bold=true), @sprintf("%4.6f\n", currelbotest))
+            print(Crayon(foreground = :red, bold=true), @sprintf("%4.6f\n", currelbotest), Crayon(reset = true))
 
         end
 
@@ -85,7 +85,7 @@ function (p::RecordELBOProgress)(_) # used as callback
     
         if p.show_every > 0 && mod(p.countiterations, p.show_every) == 0
            
-            print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.6f\n", p.countiterations, p.bestelbo))
+            print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.6f\n", p.countiterations, p.bestelbo), Crayon(reset = true))
         
         end
 

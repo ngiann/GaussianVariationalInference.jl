@@ -212,12 +212,68 @@ end
 
 
 
-function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp = defaultgradient(μ), transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
+
+
+    # check validity of arguments
+
+    # @argcheck seed > 0           
+
+    @argcheck iterations > 0    
+    
+    @argcheck S > 0         
+
+    @argcheck size(C, 1) == size(C, 2)  "C must be a square matrix"
+    
+    @argcheck length(μ)  == size(C, 1)  == size(C, 2) "dimensions of μ do not agree with dimensions of C"
+    
+    @argcheck length(μ) >= 2            "VIrank1 works only for problems with two parameters and more"
+    
+
+    # check gradient arguments
+
+    optimiser = NelderMead() # default optimiser
+
+
+    if gradientmode == :forward
+        
+        gradlogp = x -> ForwardDiff.gradient(logp, x)
+
+        optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
+
+    elseif gradientmode == :zygote
+        
+            gradlogp = x -> Zygote.gradient(logp, x)[1]
+    
+            optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
+    
+    elseif gradientmode == :provided
+
+        if any(isnan.(gradlogp(μ)))
+            
+            error("provided gradient returns NaN when evaluate at provided μ")
+
+        end
+
+        optimiser = LBFGS() # optimiser to be used with user provided gradient
+
+    elseif gradientmode == :gradientfree
+        
+        optimiser = NelderMead() # optimiser when no gradient provided
+
+    else
+
+        error("invalid specification of argument gradientmode")
+
+    end
+
+
+    # Call actual algorithm
 
     @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
 
-    coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seed+1, S = S, test_every = test_every, optimiser = NelderMead(), iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+    coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
 
 end
 
