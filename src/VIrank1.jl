@@ -88,9 +88,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    function elbo(μ, u, v, Z)
+    elbo(μ, u, v, Z) = elbo(μ, getcovroot(u, v), Z)
 
-        local C = getcovroot(u, v)
+    function elbo(μ, C, Z)
 
         local ℋ = GaussianVariationalInference.entropy(C)
         
