@@ -1,6 +1,9 @@
-function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
+function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
 
-    D = length(μ₀); @assert(D == size(C₀, 1) == size(C₀, 2))
+    D = length(μ₀)
+
+    rg = MersenneTwister(seed)
+
 
     #----------------------------------------------------
     # generate latent variables
@@ -13,7 +16,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Define jacobian of transformation via AD
     #----------------------------------------------------
 
-    jac_transform = transform == identity ? Matrix(I, D, D) : x -> ForwardDiff.jacobian(transform, x)
+    # jac_transform = transform == identity ? Matrix(I, D, D) : x -> ForwardDiff.jacobian(transform, x)
 
 
     #----------------------------------------------------
@@ -41,11 +44,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
         local μ, u, v = unpack(param)
 
-        local C = getcovroot(C₀, u, v)
+        local ℓ = elbo(μ, u, v, Ztrain)
 
-        local ℓ = elbo(μ, C, Ztrain)
-
-        update!(trackELBO; newelbo = ℓ, μ = μ, C = C)
+        update!(trackELBO; newelbo = ℓ, μ = μ, C = getcovroot(u, v))
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -65,9 +66,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Functions for covariance and covariance root 
     #----------------------------------------------------
 
-    function getcov(C₀, u, v)
+    function getcov(u, v)
 
-        local aux = getcovroot(C₀, u, v)
+        local aux = getcovroot(u, v)
 
         local Σ = aux*aux'
 
@@ -76,9 +77,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     end
 
 
-    function getcovroot(C₀, u, v)
+    function getcovroot(u, v)
     
-        C₀ + u*v'
+        C + u*v'
 
     end
 
@@ -87,9 +88,10 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    function elbo(μ, C, Z)
+    function elbo(μ, u, v, Z)
 
-        
+        local C = getcovroot(u, v)
+
         local ℋ = GaussianVariationalInference.entropy(C)
         
         # if transform !== identity
@@ -126,7 +128,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     function elbo_grad(μ, u, v, Z)
 
-        local C = getcovroot(C₀, u, v)
+        local C = getcovroot(u, v)
 
         local aux = z -> partial_elbo_grad(μ, C, u, v, z)
         
@@ -152,26 +154,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Numerically verify gradient
     #----------------------------------------------------
 
-    # COMMENT BACK IN AFTER VERIFICATION
-    #numerical_verification ? verifygradient(μ₀, Σ₀, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
-    
-    # DELETE AFTER VERIFICATION
-    # let 
-        
-    #     local u,v = randn(D), randn(D)
+    numerical_verification ? verifygradient(μ₀, 1e-2*randn(rg, D), 1e-2*randn(rg, D), elbo, minauxiliary_grad, unpack, Ztrain) : nothing
 
-    #     local angrad = minauxiliary_grad([μ₀;vec(u);vec(v)])
-        
-    #     adgrad = ForwardDiff.gradient(minauxiliary, [μ₀; vec(u);vec(v)])
     
-    #     discrepancy =  maximum(abs.(vec(adgrad) - vec(angrad)))
-    
-    #     display([angrad adgrad])
-
-    #     @printf("Maximum absolute difference between AD and analytical gradient is %f\n", discrepancy)
-        
-    # end
-
     #----------------------------------------------------
     # Define callback function called at each iteration
     #----------------------------------------------------
@@ -196,7 +181,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     options = Optim.Options(extended_trace = false, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(2D)], optimiser, options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(rg, 2D)], optimiser, options)
 
     μopt, uopt, vopt = unpack(result.minimizer)
 
@@ -205,10 +190,8 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Return results
     #----------------------------------------------------
 
-    Copt = getcovroot(C₀, uopt, vopt)
+    Copt = getcovroot(uopt, vopt)
 
-    # Σopt = getcov(C₀, uopt, vopt)
-
-    return μopt, Copt, elbo(μopt, Copt, Ztrain)
+    return MvNormal(μopt, getcov(uopt, vopt)), elbo(μopt, uopt, vopt, Ztrain), Copt
 
 end

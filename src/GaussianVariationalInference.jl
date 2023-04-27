@@ -15,7 +15,8 @@ module GaussianVariationalInference
     
     include("interface.jl")
     include("VIfull.jl")
-    include("coreVIrank1.jl")
+    include("VIdiag.jl")
+    include("VIrank1.jl")
     include("entropy.jl")
        
     # include("VIdiag.jl")
@@ -27,6 +28,7 @@ module GaussianVariationalInference
     # Utilities
     
     # include("util/report.jl")
+    include("util/pickoptimiser.jl")
     include("util/generatelatentZ.jl")
     include("util/defaultgradient.jl")
     include("util/verifygradient.jl")
@@ -42,7 +44,7 @@ module GaussianVariationalInference
 
     
 
-    export VI, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
+    export VI, VIdiag, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
     
     export exampleproblem1
 

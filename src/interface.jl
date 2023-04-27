@@ -1,7 +1,7 @@
 """
 # Basic use:
 
-    q, logev = VI(logp, μ, σ²=0.1; S = 100, iterations = 1, show_every = -1)
+    q, logev, Croot = VI(logp, μ, σ²=0.1; S = 100, iterations = 1, show_every = -1)
 
 Returns approximate Gaussian posterior and log evidence.
 
@@ -19,8 +19,9 @@ A description of only the most basic arguments follows.
 
 # Outputs
 
-- `q` is the approximating posterior returned as a ```Distributions.MvNormal``` type
+- `q` is the approximating posterior returned as a ```Distributions.MvNormal``` type.
 - `logev` is the approximate log-evidence.
+- `Croot` is the matrix root of the posterior covariance.
 
 
 # Example
@@ -31,69 +32,30 @@ julia> using LinearAlgebra, Distributions
 julia> D = 4; X = randn(D, 1000); W = randn(D); β = 0.3; α = 1.0;
 julia> Y = vec(W'*X); Y += randn(size(Y))/sqrt(β);
 julia> Sn = inv(α*I + β*(X*X')) ; mn = β*Sn*X*Y; # exact posterior
-julia> posterior, logev = VI( w -> logpdf(MvNormal(vec(w'*X), sqrt(1/β)), Y) + logpdf(MvNormal(zeros(D),sqrt(1/α)), w), randn(D); S = 1_000, iterations = 15);
+julia> posterior, logev, = VI( w -> logpdf(MvNormal(vec(w'*X), sqrt(1/β)), Y) + logpdf(MvNormal(zeros(D),sqrt(1/α)), w), randn(D); S = 1_000, iterations = 15);
 julia> display([mean(posterior) mn])
 julia> display([cov(posterior)  Sn])
 julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::Vector, Σ::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     # check validity of arguments
 
-    @argcheck seed > 0           
+    checkcommonarguments(seed, iterations, S, Stest, μ)
 
-    @argcheck iterations > 0    
-    
-    @argcheck S > 0         
-
-    @argcheck size(Σ, 1) == size(Σ, 2)  "Σ must be a square matrix"
+    @argcheck size(Σ, 1) == size(Σ, 2)                "Σ must be a square matrix"
     
     @argcheck length(μ)  == size(Σ, 1)  == size(Σ, 2) "dimensions of μ do not agree with dimensions of Σ"
     
-    @argcheck isposdef(Σ)               "Σ must be positive definite"
+    @argcheck isposdef(Σ)                             "Σ must be positive definite"
+   
     
-    @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
-    
+    # pick optimiser and (re)define gradient of logp
 
-    # check gradient arguments
-
-    optimiser = NelderMead() # default optimiser
-
-
-    if gradientmode == :forward
-        
-        gradlogp = x -> ForwardDiff.gradient(logp, x)
-
-        optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
-
-    elseif gradientmode == :zygote
-        
-            gradlogp = x -> Zygote.gradient(logp, x)[1]
-    
-            optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
-    
-    elseif gradientmode == :provided
-
-        if any(isnan.(gradlogp(μ)))
-            
-            error("provided gradient returns NaN when evaluate at provided μ")
-
-        end
-
-        optimiser = LBFGS() # optimiser to be used with user provided gradient
-
-    elseif gradientmode == :gradientfree
-        
-        optimiser = NelderMead() # optimiser when no gradient provided
-
-    else
-
-        error("invalid specification of argument gradientmode")
-
-    end
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
 
     # Call actual algorithm
@@ -105,15 +67,11 @@ function VI(logp::Function, μ::AbstractVector, Σ::AbstractMatrix; gradlogp = d
 end
 
 
-function VI(logp::Function, μ::AbstractVector, σ² = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::Vector, σ² = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
 
-    @argcheck σ² > 0
-    
-    # initial covariance
+    @argcheck σ² > 0    "σ² must be ≥ 0"
 
-    D = length(μ)
-    
-    Σ = Matrix(σ²*I, length(μ), length(μ))
+    Σ = Matrix(σ²*I, length(μ), length(μ)) # initial covariance
 
     VI(logp, μ, Σ; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
@@ -129,31 +87,52 @@ end
 
 
 
-# #-----------------------------------#
-# # Call mean field                   #
-# #-----------------------------------#
+#-----------------------------------#
+# Call mean field                   #
+#-----------------------------------#
 
-# function VIdiag(logp::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(μ)); gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VIdiag(logp::Function, μ::Vector, Σdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
-#     coreVIdiag(logp, [μ], [Σdiag]; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    # check validity of arguments
 
-# end
+    checkcommonarguments(seed, iterations, S, Stest, μ) 
 
+    @argcheck length(Σdiag) == length(μ)  "Σdiag must be a vector the of same length as mean μ"
+    
+    @argcheck isposdef(Diagonal(Σdiag))   "Σdiag must be positive definite"
+    
 
-# function VIdiag(logp::Function, initgaussian::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+    # pick optimiser and (re)define gradient of logp
 
-#     VIdiag(logp, mean(initgaussian), diag(cov(initgaussian)); gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
-
-# end
-
-
-# function VIdiag(logp::Function, μ::Array{Array{Float64,1},1}, Σdiag = [0.1*ones(length(μ[1])) for _ in 1:length(μ)]; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100,  iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-
-#     coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
 
-# end
+    # Call actual algorithm
+
+    @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+
+    coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
+
+end
+
+
+function VIdiag(logp::Function, initgaussian::MvNormal; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+
+    VIdiag(logp, mean(initgaussian), diag(cov(initgaussian)); gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+
+end
+
+
+
+function VIdiag(logp::Function, μ::Vector, σ²::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+
+    @argcheck σ² > 0  "σ² must be ≥ 0"
+
+    Σdiag = σ²*ones(length(μ)) # initial diagonal covariance as vector
+
+    VIdiag(logp, μ, Σdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+
+end
 
 
 # #-----------------------------------#
@@ -212,61 +191,21 @@ end
 
 
 
-function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
-
+function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
     # check validity of arguments
 
-    # @argcheck seed > 0           
-
-    @argcheck iterations > 0    
-    
-    @argcheck S > 0         
-
+    checkcommonarguments(seed, iterations, S, Stest, μ) 
+       
     @argcheck size(C, 1) == size(C, 2)  "C must be a square matrix"
     
     @argcheck length(μ)  == size(C, 1)  == size(C, 2) "dimensions of μ do not agree with dimensions of C"
     
-    @argcheck length(μ) >= 2            "VIrank1 works only for problems with two parameters and more"
-    
 
-    # check gradient arguments
+    # pick optimiser and (re)define gradient of logp
 
-    optimiser = NelderMead() # default optimiser
-
-
-    if gradientmode == :forward
-        
-        gradlogp = x -> ForwardDiff.gradient(logp, x)
-
-        optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
-
-    elseif gradientmode == :zygote
-        
-            gradlogp = x -> Zygote.gradient(logp, x)[1]
-    
-            optimiser = LBFGS() # optimiser to be used with gradient calculated wiht automatic differentiation
-    
-    elseif gradientmode == :provided
-
-        if any(isnan.(gradlogp(μ)))
-            
-            error("provided gradient returns NaN when evaluate at provided μ")
-
-        end
-
-        optimiser = LBFGS() # optimiser to be used with user provided gradient
-
-    elseif gradientmode == :gradientfree
-        
-        optimiser = NelderMead() # optimiser when no gradient provided
-
-    else
-
-        error("invalid specification of argument gradientmode")
-
-    end
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
 
     # Call actual algorithm
@@ -278,4 +217,18 @@ function VIrank1(logp::Function, μ::AbstractVector, C::AbstractMatrix; gradlogp
 end
 
 
+function checkcommonarguments(seed, iterations, S, Stest, μ)
 
+    # check validity of arguments
+
+    @argcheck seed >= 0                 "seed must be ≥ 0"
+
+    @argcheck iterations > 0            "iterations must be > 0"
+
+    @argcheck S > 0                     "S must be > 0"
+    
+    @argcheck Stest >= 0                "Stest must be ≥ 0"
+    
+    @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
+   
+end
