@@ -21,9 +21,9 @@ function RecordELBOProgress(; μ = μ, C = C, Stest = Stest, show_every = show_e
 
     Ztest = generatelatentZ(S = Stest, D = D, seed = seed + 1) # plus one so that this seed is always different to the seed specified by user
 
-    testeblofunction(μ, C) = elbo(μ, C, Ztest)
+    testelbofunction(μ, C) = elbo(μ, C, Ztest)
 
-    RecordELBOProgress(-Inf, μ, C, 0, Stest, show_every, test_every, testeblofunction, [-Inf])
+    RecordELBOProgress(-Inf, μ, C, 0, Stest, show_every, test_every, testelbofunction, [-Inf])
 
 end
 
