@@ -61,7 +61,7 @@ function VI(logp::Function, μ::Vector, Σ::Matrix; gradlogp = defaultgradient(�
     # Call actual algorithm
 
     @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
-    @printf("\t Number of available threads is %d\n", Threads.nthreads())
+    reportnumberofthreads()
 
     coreVIfull(logp, μ, Σ; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
 
@@ -111,7 +111,7 @@ function VIdiag(logp::Function, μ::Vector, Σdiag::Vector = 0.1*ones(length(μ)
     # Call actual algorithm
 
     @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
-    @printf("\t Number of available threads is %d\n", Threads.nthreads())
+    reportnumberofthreads()
 
     coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
 
@@ -213,8 +213,8 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradie
     # Call actual algorithm
 
     @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
-    @printf("\t Number of available threads is %d\n", Threads.nthreads())
-    
+    reportnumberofthreads()
+
     coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
 
 end
@@ -234,4 +234,11 @@ function checkcommonarguments(seed, iterations, S, Stest, μ)
     
     @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
    
+end
+
+
+function reportnumberofthreads()
+    if Threads.nthreads() > 1
+        @printf("\t Number of available threads is %d\n", Threads.nthreads())
+    end    
 end
