@@ -1,4 +1,4 @@
-function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
 
     D = length(μ₀)
 
@@ -34,9 +34,9 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
         local μ, C = unpack(param)
 
-        local ℓ = elbo(μ, C, Ztrain)
+        local ℓ, stdℓ = elbo(μ, C, Ztrain)
 
-        update!(trackELBO; newelbo = ℓ, μ = μ, C = C)
+        update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -76,11 +76,14 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    function elbo(μ, C, Z)
+    function elbo(μ, Cfull, Z)
 
-        local aux = z -> logp(μ .+ C*z)
+        local f = z -> logp(makeparam(μ, Cfull, z))
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(C)
+        local logpsamples = Transducers.tcollect(Map(f),  Z)
+        
+        return mean(logpsamples) + entropy(Cfull), sqrt(var(logpsamples)/length(Z))
+        
 
     end
 
@@ -118,7 +121,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     # Numerically verify gradient
     #----------------------------------------------------
 
-    numerical_verification ? verifygradient(μ₀, Σ₀, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
+    numerical_verification ? verifygradient(μ₀, C₀, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
  
 
     #----------------------------------------------------
@@ -136,7 +139,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
                                      Stest = Stest,
                                      show_every = show_every,
                                      test_every = test_every, 
-                                     elbo = elbo, seed = seed)
+                                     logp = logp, seed = seed)
     
 
 
@@ -146,7 +149,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
     options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(cholesky(Σ₀).L)], optimiser, options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(C₀)], optimiser, options)
 
     μopt, Copt = unpack(result.minimizer)
 
@@ -155,8 +158,6 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
     # Return results
     #----------------------------------------------------
 
-    Σopt = getcov(Copt)
-
-    return MvNormal(μopt, Σopt), elbo(μopt, Copt, Ztrain), Copt
+    return MvNormal(μopt, getcov(Copt)), elbo(μopt, Copt, Ztrain), Copt
 
 end

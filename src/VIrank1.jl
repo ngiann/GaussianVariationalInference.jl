@@ -99,15 +99,12 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
         #     ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
             
         # end
-        # local aux = map(z -> logp(transform(makeparam(μ, C, z))), Z)
-
-        # mean(aux) + entropy(C), sqrt(var(aux)/length(Z))
-
-        local auxexpectedlogl = z -> logp(transform(μ .+ C*z))
-
-        local aux = Transducers.tcollect(Map(auxexpectedlogl),  Z)
         
-        return mean(aux) + entropy(C), sqrt(var(aux)/length(Z))
+        local f = z -> logp(makeparam(μ, C, z))
+
+        local logpsamples = Transducers.tcollect(Map(f),  Z)
+        
+        return mean(logpsamples) + entropy(C), sqrt(var(logpsamples)/length(Z))
 
     end
 

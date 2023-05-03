@@ -1,11 +1,9 @@
 # Checks gradient for VI with full covariance matrix
-function verifygradient(μ, Σ::Matrix, elbo, minauxiliary_grad, unpack, Z)
-            
-    C = vec(Matrix(cholesky(Σ).L))
-   
-    angrad = minauxiliary_grad([μ; C])
+function verifygradient(μ, C::Matrix, elbo, minauxiliary_grad, unpack, Z)
+
+    angrad = minauxiliary_grad([μ; vec(C)])
     
-    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z), [μ;  C])
+    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z)[1], [μ;  vec(C)])
 
     reportdiscrepancy(angrad, adgrad)
 
@@ -13,13 +11,11 @@ end
 
 
 # Checks gradient for VI with diagonal covariance matrix
-function verifygradient(μ, Σdiag::Vector, elbo, minauxiliary_grad, unpack, Z)
+function verifygradient(μ, Cdiag::Vector, elbo, minauxiliary_grad, unpack, Z)
 
-    C = sqrt.(Σdiag)
-
-    angrad = minauxiliary_grad([μ; C])
+    angrad = minauxiliary_grad([μ; Cdiag])
     
-    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z), [μ;  C])
+    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z)[1], [μ;  Cdiag])
 
     reportdiscrepancy(angrad, adgrad)
 
@@ -31,7 +27,7 @@ function verifygradient(μ, u::Vector, v::Vector, elbo, minauxiliary_grad, unpac
 
     angrad = minauxiliary_grad([μ; u; v])
     
-    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z), [μ; u; v])
+    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z)[1], [μ; u; v])
 
     reportdiscrepancy(angrad, adgrad)
 

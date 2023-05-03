@@ -19,17 +19,16 @@ end
 
 function RecordELBOProgress(; μ = μ, C = C, Stest = Stest, show_every = show_every, test_every = test_every, logp = logp, seed = seed)
     
-    D = length(μ)
-
-    # Ztest = generatelatentZ(S = Stest, D = D, seed = 13)
     
-    f = z -> logp(makeparam(μ, C, z))
-
-    function testelbofunction(μ, C) 
+    function testelbofunction(μ, C)
+         
+        D = length(μ)
         
-        local aux = map(f, [randn(D) for _ in 1:100])
+        f = z -> logp(makeparam(μ, C, z))
+        
+        aux = map(f, [randn(D) for _ in 1:100])
 
-        while sqrt(var(aux)/length(aux)) > 0.1
+        while sqrt(var(aux)/length(aux)) > 0.2
 
             auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
 

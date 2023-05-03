@@ -32,11 +32,11 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
     function minauxiliary(param)
 
-        local μ, Cdiag = unpack(param)
+        local μ, C = unpack(param)
 
-        local ℓ, stdℓ = elbo(μ, Cdiag, Ztrain)
+        local ℓ, stdℓ = elbo(μ, C, Ztrain)
 
-        update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = Cdiag)
+        update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -45,9 +45,9 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
     function minauxiliary_grad(param)
 
-        local μ, Cdiag = unpack(param)
+        local μ, C = unpack(param)
 
-        return -1.0 * elbo_grad(μ, Cdiag, Ztrain)  # Optim.optimise is minimising
+        return -1.0 * elbo_grad(μ, C, Ztrain)  # Optim.optimise is minimising
 
     end
 
@@ -77,9 +77,11 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
     function elbo(μ, Cdiag, Z)
 
-        local aux = map(z -> logp(makeparam(μ, Cdiag, z)), Z)
+        local f = z -> logp(makeparam(μ, Cdiag, z))
 
-        mean(aux) + GaussianVariationalInference.entropy(Cdiag), sqrt(var(aux)/length(Z))
+        local logpsamples = Transducers.tcollect(Map(f),  Z)
+        
+        return mean(logpsamples) + entropy(Cdiag), sqrt(var(logpsamples)/length(Z))
 
     end
 
