@@ -44,9 +44,9 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
         local μ, u, v = unpack(param)
 
-        local ℓ = elbo(μ, u, v, Ztrain)
+        local ℓ, ℓstd = elbo(μ, u, v, Ztrain)
 
-        update!(trackELBO; newelbo = ℓ, μ = μ, C = getcovroot(u, v))
+        update!(trackELBO; newelbo = ℓ, newelbo_std = ℓstd, μ = μ, C = getcovroot(u, v))
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -91,9 +91,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
     elbo(μ, u, v, Z) = elbo(μ, getcovroot(u, v), Z)
 
     function elbo(μ, C, Z)
-
-        local ℋ = GaussianVariationalInference.entropy(C)
-        
+ 
         # if transform !== identity
             
         #     local auxentropy = z -> logabsdet(jac_transform(μ .+ C*z))[1]
@@ -101,12 +99,15 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
         #     ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
             
         # end
-        
+        # local aux = map(z -> logp(transform(makeparam(μ, C, z))), Z)
+
+        # mean(aux) + entropy(C), sqrt(var(aux)/length(Z))
+
         local auxexpectedlogl = z -> logp(transform(μ .+ C*z))
 
-        local Elogl = Transducers.foldxt(+, Map(auxexpectedlogl),  Z) / length(Z)
+        local aux = Transducers.tcollect(Map(auxexpectedlogl),  Z)
         
-        return Elogl + ℋ
+        return mean(aux) + entropy(C), sqrt(var(aux)/length(Z))
 
     end
 
@@ -171,7 +172,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
                                      Stest = Stest,
                                      show_every = show_every,
                                      test_every = test_every, 
-                                     elbo = elbo, seed = seedtest)
+                                     logp = logp, seed = seedtest)
     
 
 

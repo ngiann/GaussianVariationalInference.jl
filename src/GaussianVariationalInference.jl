@@ -5,11 +5,13 @@ module GaussianVariationalInference
 
     using Transducers
 
-    using ArgCheck, Printf, Crayons
+    using ArgCheck, Printf, Crayons#, PyPlot
 
-    using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
+    using LinearAlgebra, Optim
+    
+    using Random, Distributions, StatsFuns
 
-    using Zygote
+    using Zygote, ForwardDiff
     
     # Core code
     
@@ -33,6 +35,10 @@ module GaussianVariationalInference
     include("util/defaultgradient.jl")
     include("util/verifygradient.jl")
     include("util/RecordELBOProgress.jl")
+    include("util/makeparameters.jl")
+
+
+    include("pointposterior.jl")
 
     # Verification
     include("gradient_derivation/logdet_derivation.jl")
@@ -48,7 +54,7 @@ module GaussianVariationalInference
     
     export exampleproblem1
 
-    export logdet_derivation
+    export logdet_derivation, pointposterior
 
     # Re-export 
     export cov, mean, pdf, logpdf

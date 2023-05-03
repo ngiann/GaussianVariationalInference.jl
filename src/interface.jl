@@ -92,15 +92,15 @@ end
 # Call mean field                   #
 #-----------------------------------#
 
-function VIdiag(logp::Function, μ::Vector, Σdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
     # check validity of arguments
 
     checkcommonarguments(seed, iterations, S, Stest, μ) 
 
-    @argcheck length(Σdiag) == length(μ)  "Σdiag must be a vector the of same length as mean μ"
+    @argcheck length(Cdiag) == length(μ)  "Cdiag must be a vector the of same length as mean μ"
     
-    @argcheck isposdef(Diagonal(Σdiag))   "Σdiag must be positive definite"
+    @argcheck isposdef(Diagonal(Cdiag.*Cdiag))   "Cdiag must be positive definite"
     
 
     # pick optimiser and (re)define gradient of logp
@@ -113,7 +113,7 @@ function VIdiag(logp::Function, μ::Vector, Σdiag::Vector = 0.1*ones(length(μ)
     @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
     reportnumberofthreads()
 
-    coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
+    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
 
 end
 
