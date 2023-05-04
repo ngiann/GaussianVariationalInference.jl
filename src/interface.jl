@@ -240,5 +240,7 @@ end
 function reportnumberofthreads()
     if Threads.nthreads() > 1
         @printf("\t Number of available threads is %d\n", Threads.nthreads())
-    end    
+    else
+        @printf("\t Single thread available. To use multiple threads start julia with flag -t <number of threads>\n")    
+    end
 end
