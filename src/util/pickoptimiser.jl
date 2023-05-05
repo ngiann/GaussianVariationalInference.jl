@@ -4,13 +4,13 @@ function pickoptimiser(μ, logp, gradlogp, gradientmode)
         
         # optimiser to be used with gradient calculated with automatic differentiation
 
-        return LBFGS(), x -> ForwardDiff.gradient(logp, x)
+        return ConjugateGradient(), x -> ForwardDiff.gradient(logp, x)
 
     elseif gradientmode == :zygote
         
         # optimiser to be used with gradient calculated with automatic differentiation
     
-        return LBFGS(), x -> Zygote.gradient(logp, x)[1]
+        return ConjugateGradient(), x -> Zygote.gradient(logp, x)[1]
 
     elseif gradientmode == :provided
 
@@ -22,7 +22,7 @@ function pickoptimiser(μ, logp, gradlogp, gradientmode)
 
         # optimiser to be used with user provided gradient
 
-        return LBFGS(), gradlogp
+        return ConjugateGradient(), gradlogp
 
     elseif gradientmode == :gradientfree
         

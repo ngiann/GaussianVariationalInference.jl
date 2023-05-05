@@ -1,108 +1,88 @@
 mutable struct RecordELBOProgress
 
-    bestelbo # default -Inf
-    bestelbo_std
-    bestμ 
-    bestC
+    bestparam       # keep track of the parameters that lead to highest elbo on test latent Z
 
-    countiterations # default is 0
+    show_every      # every how many iterations should we report the elbo
 
-    Stest
-    show_every
-    test_every
+    test_every      # every how many iterations should we evaluate the elbo on test Z
+
+    elbofunction
+
     testelbofunction
-    testelbohistory
-    testelbohistory_std
+
+    bestsofarelbotest
+    
+end
+
+
+function RecordELBOProgress(;initialparam = initialparam, show_every = show_every, test_every = test_every, testelbofunction = testelbofunction, elbo = elbo, unpack = unpack)
+
+    RecordELBOProgress(initialparam, show_every, test_every, elbo, testelbofunction, testelbofunction(initialparam))
 
 end
 
 
-function RecordELBOProgress(; μ = μ, C = C, Stest = Stest, show_every = show_every, test_every = test_every, logp = logp, seed = seed)
-    
-    
-    function testelbofunction(μ, C)
-         
-        D = length(μ)
-        
-        f = z -> logp(makeparam(μ, C, z))
-        
-        aux = map(f, [randn(D) for _ in 1:100])
+# Get functions
 
-        while sqrt(var(aux)/length(aux)) > 0.2
+getbestsolution(p::RecordELBOProgress) = p.bestparam
 
-            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
-
-            aux = vcat(aux, auxmore)
-
-        end
-
-        mean(aux) + entropy(C), sqrt(var(aux)/length(aux)), length(aux)
-
-    end
-
-    RecordELBOProgress(-Inf, -Inf, μ, C, 0, Stest, show_every, test_every, testelbofunction, zeros(Float64, 0), zeros(Float64, 0))
-
-end
+getbestelbo(p::RecordELBOProgress)     = p.bestsofarelbotest
 
 
-function update!(p::RecordELBOProgress; newelbo = newelbo, newelbo_std = newelbo_std, μ = μ, C = C)
 
-    if newelbo > p.bestelbo
-        p.bestelbo = newelbo
-        p.bestelbo_std = newelbo_std
-        p.bestμ .= μ
-        p.bestC .= C
-    end
+function (p::RecordELBOProgress)(os) # used as callback
 
-end
+    iteration        =  os.iteration
 
-function plot(p::RecordELBOProgress)
+    currentminimizer =  os.metadata["x"]
 
-    figure(-1)
-    cla()
-    
-    numentries = length(p.testelbohistory)
+    currentelbo      =  - os.value
 
-    PyPlot.plot(collect(1:numentries)*p.test_every, p.testelbohistory, "ko-")
-    PyPlot.plot(collect(1:numentries)*p.test_every, p.testelbohistory + 3*p.testelbohistory_std, "k--")
-    PyPlot.plot(collect(1:numentries)*p.test_every, p.testelbohistory - 3*p.testelbohistory_std, "k--")
+    # Unfortunately we need to re-evaluate the current best minimizer in order to get the std
+    # This costs extra function evaluations!
+   
+    reevaluated_elbo, currentelbo_std = p.elbofunction(currentminimizer)
 
+    # sanity check
 
-end
-
-function (p::RecordELBOProgress)(_) # used as callback
-
-
-    p.countiterations += 1
+    @assert(currentelbo == reevaluated_elbo)
+ 
 
     
-    if p.countiterations == 1
+    # if iteration == 1
         
-        if p.show_every > 0
+    #     if p.show_every > 0
 
-            @printf("Reporting elbo every %d iterations\n", p.show_every)
+    #         @printf("Reporting elbo every %d iterations\n", p.show_every)
 
-        end
+    #     end
 
-        if p.Stest > 0 && p.test_every > 0
+    #     if p.test_every > 0
         
-            @printf("Reporting test elbo every %d iterations\n", p.test_every)
+    #         @printf("Reporting test elbo every %d iterations\n", p.test_every)
         
-        end
+    #     end
 
-    end
+    # end
 
 
-    if p.Stest > 0 && p.test_every > 0 && mod(p.countiterations, p.test_every) == 0 
+    if p.test_every > 0 && mod(iteration, p.test_every) == 0
        
-        currelbotest, currelbotest_std, numsamples = p.testelbofunction(p.bestμ, p.bestC)
+        currelbotest, currelbotest_std, numsamples = p.testelbofunction(currentminimizer)
+
        
-        print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f \t test elbo (%4d) = ", p.countiterations, p.bestelbo, p.bestelbo_std, numsamples))
+        print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f \t test elbo (n = %4d) = ", iteration, currentelbo, currentelbo_std, numsamples))
        
         
-        if isempty(p.testelbohistory) || ~overfittingcriterion(currelbotest, currelbotest_std, p.bestelbo, p.bestelbo_std)#abs(currelbotest - p.bestelbo) < 3*(p.bestelbo_std + currelbotest_std)
-
+        if ~overfittingcriterion(currelbotest, currelbotest_std, currentelbo, currentelbo_std)
+            
             print(Crayon(foreground = :white, bold=false),  @sprintf("%4.4f ± %4.4f\n", currelbotest, currelbotest_std), Crayon(reset = true))
+
+
+            p.bestparam = copy(currentminimizer)
+
+            p.bestsofarelbotest = (currelbotest, currelbotest_std)
+
 
         else
             
@@ -111,16 +91,12 @@ function (p::RecordELBOProgress)(_) # used as callback
             return true
         end
 
-        push!(p.testelbohistory,     currelbotest)
-        push!(p.testelbohistory_std, currelbotest_std)
-        # plot(p)
-
 
     else
     
-        if p.show_every > 0 && mod(p.countiterations, p.show_every) == 0
+        if p.show_every > 0 && mod(iteration, p.show_every) == 0
            
-            print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f\n", p.countiterations, p.bestelbo, p.bestelbo_std), Crayon(reset = true))
+            print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f\n", iteration, currentelbo, currentelbo_std), Crayon(reset = true))
         
         end
 
@@ -139,13 +115,14 @@ function overfittingcriterion(μtrain, σtrain, μtest, σtest)
 
     # check below if value 0 is included in interval [μdiff - 3*σdiff, μdiff + 3*σdiff]
 
+    # @printf("check if 0 ∈ [%.2f, %2f]\n", μdiff - 3*σdiff, μdiff + 3*σdiff)
+
     if (μdiff - 3*σdiff < 0.0) && (0.0 < μdiff + 3*σdiff)
         
         return false # no overfitting detected
         
     end
     
-
     return true     # overfitting was detected
 
 end

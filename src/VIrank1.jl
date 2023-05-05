@@ -1,4 +1,4 @@
-function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
+function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
 
     D = length(μ₀)
 
@@ -10,13 +10,6 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
     #----------------------------------------------------
 
     Ztrain = generatelatentZ(S = S, D = D, seed = seed)
-
-
-    #----------------------------------------------------
-    # Define jacobian of transformation via AD
-    #----------------------------------------------------
-
-    # jac_transform = transform == identity ? Matrix(I, D, D) : x -> ForwardDiff.jacobian(transform, x)
 
 
     #----------------------------------------------------
@@ -44,9 +37,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
         local μ, u, v = unpack(param)
 
-        local ℓ, ℓstd = elbo(μ, u, v, Ztrain)
-
-        update!(trackELBO; newelbo = ℓ, newelbo_std = ℓstd, μ = μ, C = getcovroot(u, v))
+        local ℓ, = elbo(μ, u, v, Ztrain)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -79,7 +70,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
     function getcovroot(u, v)
     
-        C + u*v'
+        C₀ + u*v'
 
     end
 
@@ -92,19 +83,11 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
     function elbo(μ, C, Z)
  
-        # if transform !== identity
-            
-        #     local auxentropy = z -> logabsdet(jac_transform(μ .+ C*z))[1]
-            
-        #     ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
-            
-        # end
-        
         local f = z -> logp(makeparam(μ, C, z))
 
-        local logpsamples = Transducers.tcollect(Map(f),  Z)
-        
-        return mean(logpsamples) + entropy(C), sqrt(var(logpsamples)/length(Z))
+        local logsamples = Transducers.tcollect(Map(f),  Z)
+
+        return mean(logsamples) + entropy(C), sqrt(var(logsamples)/length(logsamples))
 
     end
 
@@ -165,11 +148,34 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
     # package Optim.jl does not provide a consistent way
     # accross different optimisers to do this.
 
-    trackELBO = RecordELBOProgress(; μ = zeros(D), C = zeros(D,D), 
-                                     Stest = Stest,
+    
+    function testelbofunction(param)
+        
+        local μ, u, v = unpack(param)
+
+        local C = getcovroot(u, v)
+        
+        local f = z -> logp(makeparam(μ, C, z))
+        
+        local aux = map(f, [randn(D) for _ in 1:100])
+
+        while sqrt(var(aux)/length(aux)) > 0.2
+
+            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
+
+            aux = vcat(aux, auxmore)
+
+        end
+
+        mean(aux) + entropy(C), sqrt(var(aux) / length(aux)), length(aux)
+
+    end
+
+
+    trackELBO = RecordELBOProgress(; initialparam = [μ₀; zeros(2D)], 
                                      show_every = show_every,
                                      test_every = test_every, 
-                                     logp = logp, seed = seedtest)
+                                     testelbofunction = testelbofunction, elbo = x -> elbo(unpack(x)..., Ztrain), unpack = unpack)
     
 
 
@@ -177,11 +183,11 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
+    options = Optim.Options(extended_trace = true, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(rg, 2D)], optimiser, options)
+    Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(rg, 2D)], optimiser, options)
 
-    μopt, uopt, vopt = unpack(result.minimizer)
+    μopt, uopt, vopt = unpack(getbestsolution(trackELBO)) # unpack(result.minimizer)
 
 
     #----------------------------------------------------
@@ -190,6 +196,6 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
     Copt = getcovroot(uopt, vopt)
 
-    return MvNormal(μopt, getcov(uopt, vopt)), elbo(μopt, uopt, vopt, Ztrain), Copt
+    return MvNormal(μopt, getcov(uopt, vopt)), getbestelbo(trackELBO), Copt
 
 end

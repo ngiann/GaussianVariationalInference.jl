@@ -36,7 +36,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
         local ℓ, stdℓ = elbo(μ, C, Ztrain)
 
-        update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
+        # update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -133,11 +133,32 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
     # accross different optimisers to do this.
 
     
-    trackELBO = RecordELBOProgress(; μ = zeros(D), C = zeros(D), 
-                                     Stest = Stest,
+    function testelbofunction(param)
+        
+        local μ, C = unpack(param)
+        
+        local f = z -> logp(makeparam(μ, C, z))
+        
+        local aux = map(f, [randn(D) for _ in 1:100])
+
+        while sqrt(var(aux)/length(aux)) > 0.2
+
+            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
+
+            aux = vcat(aux, auxmore)
+
+        end
+
+        mean(aux) + entropy(C), sqrt(var(aux) / length(aux)), length(aux)
+
+    end
+
+
+    trackELBO = RecordELBOProgress(; initialparam = [μ₀; Cdiag], 
                                      show_every = show_every,
                                      test_every = test_every, 
-                                     logp = logp, seed = seed)
+                                     testelbofunction = testelbofunction, elbo = x -> elbo(unpack(x)..., Ztrain), unpack = unpack)
+    
     
 
 
@@ -145,11 +166,11 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
+    options = Optim.Options(extended_trace = true, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
     result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; Cdiag], optimiser, options)
 
-    μopt, Copt = unpack(result.minimizer)
+    μopt, Copt = unpack(getbestsolution(trackELBO))
 
 
     #----------------------------------------------------
@@ -158,6 +179,6 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
     Σopt = getcov(Copt)
 
-    return MvNormal(μopt, Σopt), elbo(μopt, Copt, Ztrain), Copt
+    return MvNormal(μopt, Σopt), getbestelbo(trackELBO), Copt
 
 end
