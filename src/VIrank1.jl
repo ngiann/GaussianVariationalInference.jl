@@ -183,7 +183,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = true, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
+    options = Optim.Options(extended_trace = true, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
     Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(rg, 2D)], optimiser, options)
 

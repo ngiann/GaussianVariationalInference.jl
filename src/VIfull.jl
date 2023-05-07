@@ -147,7 +147,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
+    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
     result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(C₀)], optimiser, options)
 

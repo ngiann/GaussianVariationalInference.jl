@@ -166,7 +166,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = true, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
+    options = Optim.Options(extended_trace = true, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
     result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; Cdiag], optimiser, options)
 
