@@ -77,7 +77,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
 
     function elbo(μ, Cdiag, Z)
 
-        local aux = z -> logp(μ .+ Cdiag.*z)
+        local aux = z -> logp(makeparameter(μ, Cdiag, z))
 
         Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(Cdiag)
 
@@ -86,7 +86,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
 
     function partial_elbo_grad(μ, Cdiag, z)
 
-        local g = gradlogp(μ .+ Cdiag.*z)
+        local g = gradlogp(makeparameter(μ, Cdiag, z))
 
         [g; vec(g.*z)]
 

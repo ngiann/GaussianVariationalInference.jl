@@ -78,7 +78,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
     function elbo(μ, C, Z)
 
-        local aux = z -> logp(μ .+ C*z)
+        local aux = z -> logp(makeparameter(μ, C, z))
 
         Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(C)
 
@@ -87,7 +87,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀::AbstractA
 
     function partial_elbo_grad(μ, C, z)
 
-        local g = gradlogp(μ .+ C*z)
+        local g = gradlogp(makeparameter(μ, C, z))
             
         [g; vec(g*z')] # gradμ = g, gradC = g*z'
         

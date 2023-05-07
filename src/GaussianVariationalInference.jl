@@ -28,6 +28,7 @@ module GaussianVariationalInference
     # Utilities
     
     # include("util/report.jl")
+    include("util/makeparameters.jl")
     include("util/pickoptimiser.jl")
     include("util/generatelatentZ.jl")
     include("util/defaultgradient.jl")

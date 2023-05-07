@@ -102,7 +102,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
             
         # end
         
-        local auxexpectedlogl = z -> logp(transform(μ .+ C*z))
+        local auxexpectedlogl = z -> logp(transform(makeparameter(μ, C, z)))
 
         local Elogl = Transducers.foldxt(+, Map(auxexpectedlogl),  Z) / length(Z)
         
@@ -113,7 +113,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C::AbstractArra
 
     function partial_elbo_grad(μ, C, u, v, z)
 
-        local g = gradlogp(μ .+ C*z)
+        local g = gradlogp(makeparameter(μ, C, z))
 
         local gμ = g
 
