@@ -80,7 +80,7 @@ function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S =
 
         local C = getcovroot(V, Esqrt)
 
-        mean(map(z -> logl(μ .+ C*z), Z)) + ApproximateVI.entropy(Esqrt)
+        mean(map(z -> logl(makeparameter(μ, C, z), Z)) + ApproximateVI.entropy(Esqrt)
 
     end
 
