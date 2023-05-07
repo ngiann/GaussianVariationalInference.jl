@@ -17,7 +17,7 @@ end
 
 function RecordELBOProgress(;initialparam = initialparam, show_every = show_every, test_every = test_every, testelbofunction = testelbofunction, elbo = elbo, unpack = unpack)
 
-    RecordELBOProgress(initialparam, show_every, test_every, elbo, testelbofunction, testelbofunction(initialparam))
+    RecordELBOProgress(initialparam, show_every, test_every, elbo, testelbofunction, -Inf)
 
 end
 
@@ -31,7 +31,7 @@ getbestelbo(p::RecordELBOProgress)     = p.bestsofarelbotest
 
 
 function (p::RecordELBOProgress)(os) # used as callback
-
+   
     iteration        =  os.iteration
 
     currentminimizer =  os.metadata["x"]
