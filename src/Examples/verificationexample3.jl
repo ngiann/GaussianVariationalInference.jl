@@ -19,11 +19,11 @@ function verificationexample3()
 
     f(x) = transformbetween.(x, 0, 6)
 
-    basedensity = MvNormal([1;3], [0.5 0.4; 0.4 1])
+    basedensity = MvNormal([1.0; 3.0], [0.5 0.4; 0.4 1.0])
 
-    jac(x) = ForwardDiff.jacobian(x->g(x), x)
+    jac(x) = ForwardDiff.jacobian(x -> g(x), x)
 
-    log_transformeddensity =  x-> logpdf(basedensity, g(x)) + logabsdet(jac(x))[1]
+    log_transformeddensity =  x -> logpdf(basedensity, g(x)) + logabsdet(jac(x))[1]
 
     sample() = f(rand(basedensity))
     
