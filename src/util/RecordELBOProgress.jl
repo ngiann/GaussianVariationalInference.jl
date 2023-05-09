@@ -66,7 +66,7 @@ function (p::RecordELBOProgress)(os) # used as callback
     # end
 
 
-    if p.test_every > 0 && mod(iteration, p.test_every) == 0
+    if p.test_every > 0 && mod(iteration+1, p.test_every) == 0
        
         currelbotest, currelbotest_std, numsamples = p.testelbofunction(currentminimizer)
 
