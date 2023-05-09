@@ -1,4 +1,4 @@
-function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest) where T
+function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, v₀::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest)
 
     D = length(μ₀)
 
@@ -135,7 +135,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Numerically verify gradient
     #----------------------------------------------------
 
-    numerical_verification ? verifygradient(μ₀, 1e-2*randn(rg, D), 1e-2*randn(rg, D), elbo, minauxiliary_grad, unpack, Ztrain) : nothing
+    numerical_verification ? verifygradient(μ₀, u₀, v₀, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
 
     
     #----------------------------------------------------
@@ -185,7 +185,7 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
 
     options = Optim.Options(extended_trace = true, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
-    Optim.optimize(minauxiliary, gradhelper, [μ₀; 1e-2*randn(rg, 2D)], optimiser, options)
+    Optim.optimize(minauxiliary, gradhelper, [μ₀; u₀; v₀], optimiser, options)
 
     μopt, uopt, vopt = unpack(getbestsolution(trackELBO)) # unpack(result.minimizer)
 
@@ -194,8 +194,6 @@ function coreVIrank1(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractA
     # Return results
     #----------------------------------------------------
 
-    Copt = getcovroot(uopt, vopt)
-
-    return MvNormal(μopt, getcov(uopt, vopt)), getbestelbo(trackELBO), Copt
+    return getbestelbo(trackELBO), μopt, uopt, vopt
 
 end
