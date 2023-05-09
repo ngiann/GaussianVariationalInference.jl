@@ -3,7 +3,7 @@
     
 # Example
 ```julia-repl
-julia> logp, f, g = verificationexample2() # target distribution to approximate
+julia> logp, sample, f, g = verificationexample2() # target distribution to approximate
 julia> q, logev = VI(logp, randn(2), S = 100, iterations = 10_000, show_every = 50, transform = f)
 julia> using Plots # must be indepedently installed.
 julia> x = -3:0.02:3
