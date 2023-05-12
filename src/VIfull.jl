@@ -128,7 +128,7 @@ function coreVIfull(logp::Function, μ₀::Vector, C₀::Matrix; gradlogp = grad
         
         local aux = map(f, [randn(D) for _ in 1:100])
 
-        while sqrt(var(aux)/length(aux)) > threshold
+        while sqrt(var(aux)/length(aux)) > threshold && length(aux) < 1_000_000
 
             auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 
