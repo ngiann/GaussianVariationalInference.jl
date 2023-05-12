@@ -34,9 +34,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
         local μ, C = unpack(param)
 
-        local ℓ, stdℓ = elbo(μ, C, Ztrain)
-
-        # update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
+        local ℓ, = elbo(μ, C, Ztrain)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -55,36 +53,17 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
     #----------------------------------------------------
     # Functions for covariance and covariance root 
     #----------------------------------------------------
-
     
-    function getcov(Cdiag)
-        
-        Diagonal(Cdiag.^2)
+    getcov(Cdiag) = Diagonal(Cdiag.^2)
     
-    end
-
-
-    function getcovroot(Cdiag)
-    
-        return Cdiag
-
-    end
+    getcovroot(Cdiag) = Cdiag
 
 
     #----------------------------------------------------
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    function elbo(μ, Cdiag, Z)
-
-        local f = z -> logp(makeparam(μ, Cdiag, z))
-
-        local logpsamples = Transducers.tcollect(Map(f),  Z)
-        
-        return mean(logpsamples) + entropy(Cdiag), sqrt(var(logpsamples)/length(Z))
-
-    end
-
+    elbo(μ, C, Z) = GaussianVariationalInference.elbo(logp, μ, C, Z) # elbo function defined in elbo.jl
 
     function partial_elbo_grad(μ, Cdiag, z)
 
@@ -143,7 +122,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
         while sqrt(var(aux)/length(aux)) > 0.2
 
-            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
+            auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 
             aux = vcat(aux, auxmore)
 
@@ -168,7 +147,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
 
     options = Optim.Options(extended_trace = true, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; Cdiag], optimiser, options)
+    Optim.optimize(minauxiliary, gradhelper, [μ₀; Cdiag], optimiser, options)
 
     μopt, Copt = unpack(getbestsolution(trackELBO))
 
@@ -177,8 +156,6 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
     # Return results
     #----------------------------------------------------
 
-    Σopt = getcov(Copt)
-
-    return MvNormal(μopt, Σopt), getbestelbo(trackELBO), Copt
+    return getbestelbo(trackELBO), μopt, Copt
 
 end

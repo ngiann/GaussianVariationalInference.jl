@@ -2,8 +2,6 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
 
     D = length(μ₀)
 
-    rg = MersenneTwister(seed)
-
 
     #----------------------------------------------------
     # generate latent variables
@@ -68,28 +66,14 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
     end
 
 
-    function getcovroot(u, v)
-    
-        C₀ + u*v'
-
-    end
+    getcovroot(u, v) = C₀ + u*v'
 
 
     #----------------------------------------------------
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    elbo(μ, u, v, Z) = elbo(μ, getcovroot(u, v), Z)
-
-    function elbo(μ, C, Z)
- 
-        local f = z -> logp(makeparam(μ, C, z))
-
-        local logsamples = Transducers.tcollect(Map(f),  Z)
-
-        return mean(logsamples) + entropy(C), sqrt(var(logsamples)/length(logsamples))
-
-    end
+    elbo(μ, u, v, Z) = GaussianVariationalInference.elbo(logp, μ, getcovroot(u, v), Z) # elbo function defined in elbo.jl
 
 
     function partial_elbo_grad(μ, C, u, v, z)
@@ -161,7 +145,7 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
 
         while sqrt(var(aux)/length(aux)) > 0.2
 
-            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
+            auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 
             aux = vcat(aux, auxmore)
 

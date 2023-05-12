@@ -34,9 +34,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
 
         local μ, C = unpack(param)
 
-        local ℓ, stdℓ = elbo(μ, C, Ztrain)
-
-        # update!(trackELBO; newelbo = ℓ, newelbo_std = stdℓ, μ = μ, C = C)
+        local ℓ, = elbo(μ, C, Ztrain)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
@@ -65,27 +63,14 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
     end
 
 
-    function getcovroot(C)
-    
-        return C
-
-    end
+    getcovroot(C) = C
 
 
     #----------------------------------------------------
     # Approximate evidence lower bound and its gradient
     #----------------------------------------------------
 
-    function elbo(μ, Cfull, Z)
-
-        local f = z -> logp(makeparam(μ, Cfull, z))
-
-        local logpsamples = Transducers.tcollect(Map(f),  Z)
-        
-        return mean(logpsamples) + entropy(Cfull), sqrt(var(logpsamples)/length(Z))
-        
-
-    end
+    elbo(μ, C, Z) = GaussianVariationalInference.elbo(logp, μ, C, Z) # elbo function defined in elbo.jl
 
 
     function partial_elbo_grad(μ, C, z)
@@ -145,7 +130,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
 
         while sqrt(var(aux)/length(aux)) > 0.2
 
-            auxmore = Transducers.tcollect(Map(f),  [randn(D) for _ in 1:100])
+            auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 
             aux = vcat(aux, auxmore)
 
@@ -168,15 +153,15 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
 
     options = Optim.Options(extended_trace = true, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
 
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(C₀)], optimiser, options)
+    Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(C₀)], optimiser, options)
 
-    μopt, Copt = unpack(result.minimizer)
+    μopt, Copt = unpack(getbestsolution(trackELBO))
 
 
     #----------------------------------------------------
     # Return results
     #----------------------------------------------------
 
-    return MvNormal(μopt, getcov(Copt)), elbo(μopt, Copt, Ztrain), Copt
+    return getbestelbo(trackELBO), μopt, Copt
 
 end
