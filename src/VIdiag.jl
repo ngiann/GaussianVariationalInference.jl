@@ -1,4 +1,4 @@
-function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractArray{T, 1}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIdiag(logp::Function, μ₀::Vector, Cdiag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, threshold = threshold)
 
     D = length(μ₀)
 
@@ -120,7 +120,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Cdiag::AbstractA
         
         local aux = map(f, [randn(D) for _ in 1:100])
 
-        while sqrt(var(aux)/length(aux)) > 0.2
+        while sqrt(var(aux)/length(aux)) > threshold
 
             auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 

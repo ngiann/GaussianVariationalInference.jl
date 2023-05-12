@@ -1,4 +1,4 @@
-function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, v₀::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest)
+function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, v₀::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest, threshold = threshold)
 
     D = length(μ₀)
 
@@ -143,7 +143,7 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
         
         local aux = map(f, [randn(D) for _ in 1:100])
 
-        while sqrt(var(aux)/length(aux)) > 0.2
+        while sqrt(var(aux)/length(aux)) > threshold
 
             auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 

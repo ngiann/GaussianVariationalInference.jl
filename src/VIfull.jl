@@ -1,5 +1,5 @@
-function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractArray{T, 2}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
-
+function coreVIfull(logp::Function, μ₀::Vector, C₀::Matrix; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, threshold = threshold)
+    
     D = length(μ₀)
 
     #----------------------------------------------------
@@ -128,7 +128,7 @@ function coreVIfull(logp::Function, μ₀::AbstractArray{T, 1}, C₀::AbstractAr
         
         local aux = map(f, [randn(D) for _ in 1:100])
 
-        while sqrt(var(aux)/length(aux)) > 0.2
+        while sqrt(var(aux)/length(aux)) > threshold
 
             auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
 

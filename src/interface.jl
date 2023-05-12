@@ -39,12 +39,12 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
 
     # check validity of arguments
 
-    checkcommonarguments(seed, iterations, S, Stest, μ)
+    checkcommonarguments(seed, iterations, S, Stest, μ, threshold)
 
     @argcheck size(Croot, 1) == size(Croot, 2)                "Croot must be a square matrix"
     
@@ -62,18 +62,18 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
     
     reportnumberofthreads()
 
-    coreVIfull(logp, μ, Croot; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    coreVIfull(logp, μ, Croot; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
 
 end
 
 
-function VI(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
     @argcheck σ > 0    "σ must be ≥ 0"
 
     Croot = Matrix(σ*I, length(μ), length(μ)) # initial covariance
 
-    VI(logp, μ, Croot; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VI(logp, μ, Croot; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
 
 end
 
@@ -82,11 +82,11 @@ end
 #         Call mean field           #
 #-----------------------------------#
 
-function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
     # check validity of arguments
 
-    checkcommonarguments(seed, iterations, S, Stest, μ) 
+    checkcommonarguments(seed, iterations, S, Stest, μ, threshold) 
 
     @argcheck length(Cdiag) == length(μ)         "Cdiag must be a vector the of same length as mean μ"
     
@@ -104,18 +104,18 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ))
     
     reportnumberofthreads()
 
-    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
+    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, threshold = threshold)
 
 end
 
 
-function VIdiag(logp::Function, μ::Vector, σ²::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIdiag(logp::Function, μ::Vector, σ²::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
     @argcheck σ² > 0  "σ² must be ≥ 0"
 
     Σdiag = σ²*ones(length(μ)) # initial diagonal covariance as vector
 
-    VIdiag(logp, μ, Σdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VIdiag(logp, μ, Σdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
 
 end
 
@@ -151,10 +151,10 @@ end
 
 
 #-----------------------------------#
-#           Call low rank           #
+#          Call low rank            #
 #-----------------------------------#
 
-function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
     D = length(μ)
 
@@ -164,17 +164,16 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradie
 
     v = 0.1 * randn(rg, D)
 
-    VIrank1(logp, μ, C, u, v; gradlogp = gradlogp, gradientmode = gradientmode, transform = transform, seed = seed, seedtest = seedtest, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
-
+    VIrank1(logp, μ, C, u, v; gradlogp = gradlogp, gradientmode = gradientmode, transform = transform, seed = seed, seedtest = seedtest, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
 
 end
 
 
-function VIrank1(logp::Function, μ::Vector, C::Matrix, u::Vector, v::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+function VIrank1(logp::Function, μ::Vector, C::Matrix, u::Vector, v::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold = threshold)
 
     # check validity of arguments
 
-    checkcommonarguments(seed, iterations, S, Stest, μ) 
+    checkcommonarguments(seed, iterations, S, Stest, μ, threshold) 
        
     @argcheck size(C, 1) == size(C, 2)                "C must be a square matrix"
     
@@ -195,12 +194,12 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix, u::Vector, v::Vector; gr
     
     reportnumberofthreads()
 
-    coreVIrank1(logp, μ, C, u, v; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+    coreVIrank1(logp, μ, C, u, v; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, threshold = threshold)
 
 end
 
 
-function checkcommonarguments(seed, iterations, S, Stest, μ)
+function checkcommonarguments(seed, iterations, S, Stest, μ, threshold)
 
     # check validity of arguments
 
@@ -213,6 +212,8 @@ function checkcommonarguments(seed, iterations, S, Stest, μ)
     @argcheck Stest >= 0                "Stest must be ≥ 0"
     
     @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
+
+    @argcheck threshold >= 0            "threshold must be positive. Minimum recommended value is 0.1"
    
 end
 
