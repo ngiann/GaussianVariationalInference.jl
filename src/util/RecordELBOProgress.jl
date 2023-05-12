@@ -49,21 +49,21 @@ function (p::RecordELBOProgress)(os) # used as callback
  
 
     
-    # if iteration == 1
+    if iteration == 0
         
-    #     if p.show_every > 0
+        if p.show_every > 0
 
-    #         @printf("Reporting elbo every %d iterations\n", p.show_every)
+            print(Crayon(foreground = :green, bold=false), @sprintf("Reporting elbo every %d iterations\n", p.show_every), Crayon(reset = true))
+       
+        end
 
-    #     end
-
-    #     if p.test_every > 0
+        if p.test_every > 0
         
-    #         @printf("Reporting test elbo every %d iterations\n", p.test_every)
+            print(Crayon(foreground = :green, bold=false), @sprintf("Reporting test elbo every %d iterations\n", p.test_every), Crayon(reset = true))
         
-    #     end
+        end
 
-    # end
+    end
 
 
     if p.test_every > 0 && mod(iteration+1, p.test_every) == 0
@@ -71,7 +71,7 @@ function (p::RecordELBOProgress)(os) # used as callback
         currelbotest, currelbotest_std, numsamples = p.testelbofunction(currentminimizer)
 
        
-        print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f \t test elbo (n = %4d) = ", iteration, currentelbo, currentelbo_std, numsamples))
+        print(Crayon(foreground = :white, bold=false), @sprintf("Iteration %4d:\t elbo = %4.4f ± %4.4f \t test elbo (n = %4d) = ", iteration, currentelbo, currentelbo_std, numsamples), Crayon(reset = true))
        
         
         if ~overfittingcriterion(currelbotest, currelbotest_std, currentelbo, currentelbo_std)
@@ -114,8 +114,6 @@ function overfittingcriterion(μtrain, σtrain, μtest, σtest)
     σdiff = sqrt(σtrain^2 + σtest^2)
 
     # check below if value 0 is included in interval [μdiff - 3*σdiff, μdiff + 3*σdiff]
-
-    # @printf("check if 0 ∈ [%.2f, %2f]\n", μdiff - 3*σdiff, μdiff + 3*σdiff)
 
     if (μdiff - 3*σdiff < 0.0) && (0.0 < μdiff + 3*σdiff)
         

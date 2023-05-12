@@ -58,7 +58,7 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
 
     # Call actual algorithm
 
-    @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    print(Crayon(foreground = :white, bold=true), @sprintf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations), Crayon(reset = true))
     
     reportnumberofthreads()
 
@@ -100,7 +100,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ))
 
     # Call actual algorithm
 
-    @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    print(Crayon(foreground = :white, bold=true), @sprintf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations), Crayon(reset = true))
     
     reportnumberofthreads()
 
@@ -191,7 +191,7 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix, u::Vector, v::Vector; gr
 
     # Call actual algorithm
 
-    @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    print(Crayon(foreground = :white, bold=true), @sprintf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations), Crayon(reset = true))
     
     reportnumberofthreads()
 
@@ -220,12 +220,12 @@ end
 function reportnumberofthreads()
     
     if Threads.nthreads() > 1
-    
-        @printf("\t Number of available threads is %d\n", Threads.nthreads())
+        
+        print(Crayon(foreground = :light_blue, bold=false), @sprintf("\t Number of available threads is %d\n", Threads.nthreads()), Crayon(reset = true))
     
     else
     
-        @printf("\t Single thread available. To use multiple threads start julia with flag -t <number of threads>\n")    
+        print(Crayon(foreground = :light_blue, bold=false), @sprintf("\t Single thread available. To use multiple threads start julia with flag -t <number of threads>\n"), Crayon(reset = true))    
     
     end
 
