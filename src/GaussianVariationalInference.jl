@@ -5,7 +5,7 @@ module GaussianVariationalInference
 
     using Transducers
 
-    using ArgCheck, Printf, Crayons
+    using ArgCheck, Printf, Crayons, RecipesBase
 
     using LinearAlgebra, Optim
     
@@ -13,8 +13,10 @@ module GaussianVariationalInference
 
     using Zygote, ForwardDiff
     
-    
+
+    #----------------------------------------
     # Core code
+    #----------------------------------------
     
     include("interface.jl")
     include("VIfull.jl")
@@ -26,8 +28,10 @@ module GaussianVariationalInference
     export VI, VIdiag, VIrank1
     
 
+    #----------------------------------------
     # Utilities
-    
+    #----------------------------------------
+
     include("util/pickoptimiser.jl")
     include("util/generatelatentZ.jl")
     include("util/defaultgradient.jl")
@@ -35,22 +39,30 @@ module GaussianVariationalInference
     include("util/RecordELBOProgress.jl")
     include("util/makeparameters.jl")
 
+    export getbestelbo
+    
 
+    #----------------------------------------
     # Verification
+    #----------------------------------------
 
     # include("gradient_derivation/logdet_derivation.jl")
 
     # export logdet_derivation
 
 
+    #----------------------------------------
     # Example problems
+    #----------------------------------------
     
     include("Examples/exampleproblem1.jl")
 
     export exampleproblem1
     
 
+    #----------------------------------------
     # Re-export 
+    #----------------------------------------
     
     export cov, mean, pdf, logpdf
 
