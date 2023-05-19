@@ -20,6 +20,7 @@ module GaussianVariationalInference
     
     include("interface.jl")
     include("VIfull.jl")
+    include("MVI.jl")
     include("VIdiag.jl")
     include("VIrank1.jl")
     include("elbo.jl")
@@ -27,7 +28,7 @@ module GaussianVariationalInference
     include("StochasticVIdiag.jl")
     include("StochasticVIrank1.jl")
     
-    export VI, VIdiag, VIrank1, stochasticVIdiag
+    export VI, VIdiag, VIrank1, stochasticVIdiag, MVI
     
 
     #----------------------------------------

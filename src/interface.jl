@@ -166,30 +166,26 @@ end
 
 
 
-# #-----------------------------------#
-# # Call Mixed Variational Inference  #
-# #-----------------------------------#
-
-# function MVI(logp::Function, μ::Array{Float64,1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-#     MVI(logp, [μ]; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, laplaceiterations=laplaceiterations, iterations=iterations, numerical_verification = numerical_verification, Stest=Stest, show_every=show_every, inititerations=inititerations)
-
-# end
+#-----------------------------------#
+# Call Mixed Variational Inference  #
+#-----------------------------------#
 
 
-# function MVI(logp::Function, μ::Array{Array{Float64,1},1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
 
-#     LAposteriors = laplace(logp, μ; gradlogp = gradlogp, optimiser=optimiser, iterations=laplaceiterations, show_every=show_every)
+function MVI(logp::Function, μ::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
-#     coreMVI(logp, gradlogp, LAposteriors; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
-# end
 
-# function MVI(logp::Function, LAposterior::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000, seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+    # Call actual algorithm
 
-#     coreMVI(logp, gradlogp, [LAposterior]; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    print(Crayon(foreground = :white, bold=true), @sprintf("Running MVI: seed=%d, S=%d, D=%d for %d iterations\n", seed, S, length(μ), iterations), Crayon(reset = true))
+    
+    reportnumberofthreads()
 
-# end
+    coreMVI(logp, gradlogp, μ; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, test_every = test_every, show_every = show_every, threshold = threshold)
+  
+end
 
 
 
