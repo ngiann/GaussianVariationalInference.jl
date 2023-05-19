@@ -24,9 +24,19 @@ module GaussianVariationalInference
     include("VIrank1.jl")
     include("elbo.jl")
     include("entropy.jl")
+    include("StochasticVIdiag.jl")
+    include("StochasticVIrank1.jl")
     
-    export VI, VIdiag, VIrank1
+    export VI, VIdiag, VIrank1, stochasticVIdiag
     
+
+    #----------------------------------------
+    # Optimisation routines
+    #----------------------------------------
+    
+    include("optim/Adadelta.jl")
+    include("optim/Adagrad.jl")
+    include("optim/sgd.jl")
 
     #----------------------------------------
     # Utilities

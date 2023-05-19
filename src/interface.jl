@@ -93,7 +93,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ))
     @argcheck isposdef(Diagonal(Cdiag.*Cdiag))   "Cdiag must be positive definite"
     
 
-    # pick optimiser and (re)define gradient of logp
+    # (re)define gradient of logp
 
     optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
@@ -109,16 +109,59 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ))
 end
 
 
-function VIdiag(logp::Function, μ::Vector, σ²::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
+function VIdiag(logp::Function, μ::Vector, σ::Float64; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, threshold::Float64 = 0.2)
 
-    @argcheck σ² > 0  "σ² must be ≥ 0"
+    @argcheck σ > 0  "σ² must be ≥ 0"
 
-    Σdiag = σ²*ones(length(μ)) # initial diagonal covariance as vector
+    Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
 
-    VIdiag(logp, μ, Σdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
+    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, threshold = threshold)
 
 end
 
+
+
+#-----------------------------------#
+#    Call stochastic mean field     #
+#-----------------------------------#
+
+function stochasticVIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, threshold::Float64 = 0.2, η::Float64 = η)
+
+    # check validity of arguments
+
+    checkcommonarguments(seed, iterations, S, Stest, μ, threshold) 
+
+    @argcheck length(Cdiag) == length(μ)         "Cdiag must be a vector the of same length as mean μ"
+    
+    @argcheck isposdef(Diagonal(Cdiag.*Cdiag))   "Cdiag must be positive definite"
+    
+
+    # pick optimiser and (re)define gradient of logp
+
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
+
+
+    # Call actual algorithm
+
+    print(Crayon(foreground = :white, bold=true), @sprintf("Running stochasticVI with diagonal covariance (mean field): seed=%d, S=%d, η=%d, D=%d for %d iterations\n", seed, S, η, length(μ), iterations), Crayon(reset = true))
+    
+    reportnumberofthreads()
+
+    # corestochasticVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, threshold = threshold)
+    
+    corestochVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, show_every = show_every, η = η, threshold = threshold)
+
+end
+
+function stochasticVIdiag(logp::Function, μ::Vector, σ::Float64; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, threshold::Float64 = 0.2, η::Float64 = η)
+
+    @argcheck σ > 0  "σ must be ≥ 0"
+
+    Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
+
+    stochasticVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, show_every = show_every, threshold = threshold, η = η)
+
+end
 
 
 

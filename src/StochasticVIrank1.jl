@@ -1,14 +1,6 @@
-function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, v₀::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest, threshold = threshold)
+function corestochasticVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, v₀::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform, seedtest = seedtest, threshold = threshold)
 
     D = length(μ₀)
-
-
-    #----------------------------------------------------
-    # generate latent variables
-    #----------------------------------------------------
-
-    Ztrain = generatelatentZ(S = S, D = D, seed = seed)
-
 
     #----------------------------------------------------
     # Auxiliar function for handling parameters
@@ -31,22 +23,22 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
     # Objective and gradient functions for Optim.optimize
     #----------------------------------------------------
 
-    function minauxiliary(param)
+    function minauxiliary(param, Z)
 
         local μ, u, v = unpack(param)
 
-        local ℓ, = elbo(μ, u, v, Ztrain)
+        local ℓ, = elbo(μ, u, v, Z)
 
         return -1.0 * ℓ # Optim.optimise is minimising
 
     end
 
 
-    function minauxiliary_grad(param)
+    function minauxiliary_grad(param, Z)
 
         local μ, u, v = unpack(param)
 
-        return -1.0 * elbo_grad(μ, u, v, Ztrain)  # Optim.optimise is minimising
+        return -1.0 * elbo_grad(μ, u, v, Z)  # Optim.optimise is minimising
 
     end
 
@@ -122,62 +114,40 @@ function coreVIrank1(logp::Function, μ₀::Vector, C₀::Matrix, u₀::Vector, 
     numerical_verification ? verifygradient(μ₀, u₀, v₀, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
 
     
+   #----------------------------------------------------
+    # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
-    # Define callback function called at each iteration
-    #----------------------------------------------------
-
-    # We want to keep track of the best variational 
-    # parameters encountered during the optimisation of
-    # the elbo. Unfortunately, the otherwise superb
-    # package Optim.jl does not provide a consistent way
-    # accross different optimisers to do this.
-
     
-    function testelbofunction(param)
+    opt = Adadelta(1e-7, 0.95, 3D)
+
+    θ = [μ₀; 1e-4*randn(2D)]
+
+    for iter in 1:iterations
+
+        Z = [randn(D) for _ in 1:S]
         
-        local μ, u, v = unpack(param)
+        g = minauxiliary_grad(θ, Z)
 
-        local C = getcovroot(u, v)
+        θ = step!(opt, θ, g)
+
+        if mod(iter, show_every) == 1
         
-        local f = z -> logp(makeparam(μ, C, z))
+            @printf("%s: iter %d,\t ELBO ≈ %f\r", tostring(opt), iter, -minauxiliary(θ, [randn(D) for _ in 1:10*S]))
         
-        local aux = map(f, [randn(D) for _ in 1:100])
-
-        while sqrt(var(aux)/length(aux)) > threshold && length(aux) < 1_000_000
-
-            auxmore = Transducers.tcollect(Map(f), [randn(D) for _ in 1:100])
-
-            aux = vcat(aux, auxmore)
+        elseif iter == iterations
+            
+            @printf("\n")
 
         end
 
-        mean(aux) + entropy(C), sqrt(var(aux) / length(aux)), length(aux)
-
     end
-
-
-    trackELBO = RecordELBOProgress(; initialparam = [μ₀; zeros(2D)], 
-                                     show_every = show_every,
-                                     test_every = test_every, 
-                                     testelbofunction = testelbofunction, elbo = x -> elbo(unpack(x)..., Ztrain), unpack = unpack)
-    
-
-
-    #----------------------------------------------------
-    # Call optimiser to minimise *negative* elbo
-    #----------------------------------------------------
-
-    options = Optim.Options(extended_trace = true, store_trace = false, show_trace = false,  iterations = iterations, g_tol = 1e-4, callback = trackELBO)
-
-    Optim.optimize(minauxiliary, gradhelper, [μ₀; u₀; v₀], optimiser, options)
-
-    μopt, uopt, vopt = unpack(getbestsolution(trackELBO)) # unpack(result.minimizer)
-
+   
 
     #----------------------------------------------------
     # Return results
     #----------------------------------------------------
+	
+    return unpack(θ)
 
-    return return μopt, uopt, vopt, trackELBO
 
 end

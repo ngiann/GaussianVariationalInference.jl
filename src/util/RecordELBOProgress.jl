@@ -11,13 +11,17 @@ mutable struct RecordELBOProgress
     testelbofunction
 
     bestsofarelbotest
+
+    test_elbo_history
+
+    test_elbo_history_std
     
 end
 
 
 function RecordELBOProgress(;initialparam = initialparam, show_every = show_every, test_every = test_every, testelbofunction = testelbofunction, elbo = elbo, unpack = unpack)
 
-    RecordELBOProgress(initialparam, show_every, test_every, elbo, testelbofunction, -Inf)
+    RecordELBOProgress(initialparam, show_every, test_every, elbo, testelbofunction, -Inf, zeros(Float64, 0), zeros(Float64, 0))
 
 end
 
@@ -83,12 +87,17 @@ function (p::RecordELBOProgress)(os) # used as callback
 
             p.bestsofarelbotest = (currelbotest, currelbotest_std)
 
+            push!(p.test_elbo_history, currelbotest)
+
+            push!(p.test_elbo_history_std, currelbotest_std)
+
 
         else
             
             print(Crayon(foreground = :red, bold=true), @sprintf("%4.4f ± %4.4f\n", currelbotest, currelbotest_std), Crayon(reset = true))
 
             return true
+
         end
 
 
@@ -123,4 +132,18 @@ function overfittingcriterion(μtrain, σtrain, μtest, σtest)
     
     return true      # overfitting was detected
 
+end
+
+
+
+@recipe function f(p::RecordELBOProgress)
+    
+    x = 1:length(p.test_elbo_history)
+
+    y = p.test_elbo_history
+
+    seriestype --> :path
+
+    x, y
+    
 end

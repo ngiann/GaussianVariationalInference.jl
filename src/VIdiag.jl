@@ -156,6 +156,6 @@ function coreVIdiag(logp::Function, μ₀::Vector, Cdiag::Vector; gradlogp = gra
     # Return results
     #----------------------------------------------------
 
-    return getbestelbo(trackELBO), μopt, Copt
+    return μopt, Copt, trackELBO
 
 end
