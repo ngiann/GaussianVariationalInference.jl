@@ -1,4 +1,4 @@
-function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::AbstractArray{T, 1}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
 
     D = length(μ₀)
 
@@ -52,23 +52,14 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
     end
 
 
-    #----------------------------------------------------
-    # Functions for covariance and covariance root 
-    #----------------------------------------------------
+    # #----------------------------------------------------
+    # # Functions for covariance and covariance root 
+    # #----------------------------------------------------
 
+    # getcov(Cdiag) = Diagonal(Cdiag.^2)
     
-    function getcov(Cdiag)
-        
-        Diagonal(Cdiag.^2)
-    
-    end
+    # getcovroot(Cdiag) = Cdiag
 
-
-    function getcovroot(Cdiag)
-    
-        return Cdiag
-
-    end
 
 
     #----------------------------------------------------
@@ -117,7 +108,7 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
     # Numerically verify gradient
     #----------------------------------------------------
 
-    numerical_verification ? verifygradient(μ₀, Σ₀diag, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
+    numerical_verification ? verifygradient(μ₀, C₀diag, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
  
 
     #----------------------------------------------------
@@ -142,10 +133,10 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
     #----------------------------------------------------
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
+@show minauxiliary([μ₀; C₀diag])
+    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = true,  iterations = iterations, g_tol = 1e-6)#, callback = trackELBO)
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = false,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
-
-    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; vec(sqrt.(Σ₀diag))], optimiser, options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; C₀diag], optimiser, options)
 
     μopt, Copt = unpack(result.minimizer)
 
@@ -154,8 +145,6 @@ function coreVIdiag(logp::Function, μ₀::AbstractArray{T, 1}, Σ₀diag::Abstr
     # Return results
     #----------------------------------------------------
 
-    Σopt = getcov(Copt)
-
-    return MvNormal(μopt, Σopt), elbo(μopt, Copt, Ztrain), Copt
+    return μopt, Copt, elbo(μopt, Copt, Ztrain)
 
 end

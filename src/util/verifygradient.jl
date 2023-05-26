@@ -13,13 +13,11 @@ end
 
 
 # Checks gradient for VI with diagonal covariance matrix
-function verifygradient(μ, Σdiag::Vector, elbo, minauxiliary_grad, unpack, Z)
+function verifygradient(μ, Cdiag::Vector, elbo, minauxiliary_grad, unpack, Z)
 
-    C = sqrt.(Σdiag)
-
-    angrad = minauxiliary_grad([μ; C])
+    angrad = minauxiliary_grad([μ; Cdiag])
     
-    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z), [μ;  C])
+    adgrad = ForwardDiff.gradient(p -> -elbo(unpack(p)..., Z), [μ; Cdiag])
 
     reportdiscrepancy(angrad, adgrad)
 
