@@ -145,6 +145,6 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
     # Return results
     #----------------------------------------------------
 
-    return μopt, Copt, elbo(μopt, Copt, Ztrain)
+    return (μ = μopt, Croot = Copt, elbo = elbo(μopt, Copt, Ztrain))
 
 end
