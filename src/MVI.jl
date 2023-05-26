@@ -25,9 +25,9 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
 
         @assert(length(param) == 2*D)
 
-        local μ     = @view param[1:D]
+        local μ     = param[1:D]
 
-        local Esqrt = @view param[D+1:2*D]
+        local Esqrt = param[D+1:2*D]
 
         return μ, Esqrt
 
@@ -84,7 +84,7 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
     function elbo(μ, Esqrt, Z)
     #----------------------------------------------------
 
-        elbo(logp, μ, getcovroot(Esqrt), Z)
+        GaussianVariationalInference.elbo(logp, μ, getcovroot(Esqrt), Z)
 
     end
 
@@ -93,7 +93,7 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
     function partial_elbo_grad(μ, C, z)
     #----------------------------------------------------
 
-        local g = gradlogp(makeparameter(μ, C, z))
+        local g = gradlogp(makeparam(μ, C, z))
 
         [g;  VLA' * g .* z]
 
@@ -160,7 +160,7 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
     end
 
 
-    trackELBO = RecordELBOProgress(; initialparam = [μ₀; Cdiag], 
+    trackELBO = RecordELBOProgress(; initialparam = [μ₀; EsqrtLA], 
                                      show_every = show_every,
                                      test_every = test_every, 
                                      testelbofunction = testelbofunction, elbo = x -> elbo(unpack(x)..., Ztrain), unpack = unpack)
@@ -191,7 +191,7 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
     # Return results
     #----------------------------------------------------
 
-    return μopt, Esqrtopt, trackELBO
+    return μopt, getcov(Esqrtopt), trackELBO
 
 end
 
