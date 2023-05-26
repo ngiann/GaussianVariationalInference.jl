@@ -96,10 +96,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ))
 
     checkcommonarguments(seed, iterations, S, Stest, μ) 
 
-    @argcheck length(Cdiag) == length(μ)  "Cdiag must be a vector the of same length as mean μ"
-    
-    @argcheck isposdef(Diagonal(Cdiag))   "Cdiag must be positive definite"
-    
+    @argcheck length(Cdiag) == length(μ)  "Cdiag must be a vector the of same length as mean μ"   
 
     # pick optimiser and (re)define gradient of logp
 
