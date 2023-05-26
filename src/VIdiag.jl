@@ -133,8 +133,8 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
     #----------------------------------------------------
     # Call optimiser to minimise *negative* elbo
     #----------------------------------------------------
-@show minauxiliary([μ₀; C₀diag])
-    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = true,  iterations = iterations, g_tol = 1e-6)#, callback = trackELBO)
+
+    options = Optim.Options(extended_trace = false, store_trace = false, show_every = 1, show_trace = true,  iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
     result  = Optim.optimize(minauxiliary, gradhelper, [μ₀; C₀diag], optimiser, options)
 
