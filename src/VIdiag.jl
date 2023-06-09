@@ -52,13 +52,13 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
     end
 
 
-    # #----------------------------------------------------
-    # # Functions for covariance and covariance root 
-    # #----------------------------------------------------
+    #----------------------------------------------------
+    # Functions for covariance and covariance root 
+    #----------------------------------------------------
 
-    # getcov(Cdiag) = Diagonal(Cdiag.^2)
+    getcov(Cdiag) = Diagonal(Cdiag.^2)
     
-    # getcovroot(Cdiag) = Cdiag
+    getcovroot(Cdiag) = Cdiag
 
 
 
@@ -145,6 +145,6 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
     # Return results
     #----------------------------------------------------
 
-    return (μ = μopt, Croot = Copt, elbo = elbo(μopt, Copt, Ztrain))
+    return MvNormal(μopt, getcov(Copt)), elbo(μopt, Copt, Ztrain), Copt
 
 end
