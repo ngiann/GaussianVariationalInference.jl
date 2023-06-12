@@ -37,6 +37,12 @@ end
 
 
 function reportdiscrepancy(angrad, adgrad)
+    
+    display([angrad adgrad])
+    msg = @sprintf("In the right column is the analytical gradient\n")
+    msg *= @sprintf("In the left column is the gradient obtained via automatic differentiation\n")
+    print(Crayon(foreground = :white, bold=true), msg, Crayon(reset = true))
+
 
     discrepancy = maximum(abs.(vec(adgrad) - vec(angrad)))
     
