@@ -34,6 +34,8 @@ module GaussianVariationalInference
     include("util/defaultgradient.jl")
     include("util/verifygradient.jl")
     include("util/RecordELBOProgress.jl")
+    include("util/first_second_derivative.jl")
+
 
     # Verification
     include("gradient_derivation/logdet_derivation.jl")
@@ -42,12 +44,13 @@ module GaussianVariationalInference
     # Example problems
     
     include("Examples/exampleproblem1.jl")
+    include("Examples/verificationexample2.jl")
 
     
 
     export VI, VIdiag, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
     
-    export exampleproblem1
+    export exampleproblem1, verificationexample2
 
     export logdet_derivation
 
