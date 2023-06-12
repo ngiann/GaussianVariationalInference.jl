@@ -1,4 +1,4 @@
-function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every)
+function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
 
     D = length(μ₀)
 
@@ -7,6 +7,19 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
     #----------------------------------------------------
 
     Ztrain = generatelatentZ(S = S, D = D, seed = seed)
+
+
+    #----------------------------------------------------
+    # Define jacobian of transformation via AD
+    #----------------------------------------------------
+
+    # jac_transform   = transform == identity ? Matrix(I, D, D) : x -> ForwardDiff.jacobian(transform, x)
+
+    jac_transform = transform == identity ? ones(D) : x -> firstderivative.(transform, x)
+    
+    firstderivativetransform  = transform == identity ? ones(D)  : firstderivativefunction(transform)
+
+    secondderivativetransform = transform == identity ? zeros(D) : secondderivativefunction(transform)
 
 
     #----------------------------------------------------
@@ -68,16 +81,36 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
 
     function elbo(μ, Cdiag, Z)
 
-        local aux = z -> logp(makeparameter(μ, Cdiag, z))
+        local ℋ = GaussianVariationalInference.entropy(Cdiag)
+        
+        if transform !== identity
+            
+            auxentropy = z -> sum(log.(abs.(jac_transform.(makeparam(μ, Cdiag, z)))))
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(Cdiag)
+            ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
+            
+        end
+  
+        local auxexpectedlogl = z -> logp(transform(makeparam(μ, Cdiag, z)))
+
+        local Elogl = Transducers.foldxt(+, Map(auxexpectedlogl),  Z) / length(Z)
+        
+        return Elogl + ℋ
 
     end
 
 
     function partial_elbo_grad(μ, Cdiag, z)
 
-        local g = gradlogp(makeparameter(μ, Cdiag, z))
+        local ψ = makeparameter(μ, Cdiag, z)
+
+        local g = gradlogp(transform(ψ))
+
+        # The following two lines could be left out when `transform`` is equal to `identity`
+
+        g = g .* firstderivativetransform.(ψ) # contribution of transformation to data log-likelihood
+
+        g += (1.0./firstderivativetransform.(ψ)) .* secondderivativetransform.(ψ) # contribution of transformation to entropy
 
         [g; vec(g.*z)]
 
