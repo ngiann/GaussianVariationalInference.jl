@@ -157,31 +157,52 @@ end
 
 
 
-# #-----------------------------------#
-# # Call mean field                   #
-# #-----------------------------------#
+#-----------------------------------#
+# Call mean field                   #
+#-----------------------------------#
 
-# function VIdiag(logp::Function, μ::Array{Float64,1}, Σdiag = 0.1*ones(length(μ)); gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VIdiag(logp::Function, μ::Vector, Cdiag::Vector = 0.1*ones(length(μ)); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
 
-#     coreVIdiag(logp, [μ], [Σdiag]; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    # check validity of arguments
 
-# end
+    # checkcommonarguments(seed, iterations, S, Stest, μ) 
+
+    @argcheck length(Cdiag) == length(μ)  "Cdiag must be a vector the of same length as mean μ"   
+
+    # pick optimiser and (re)define gradient of logp
+
+    optimiser = NelderMead()
+
+    if transform !== identity
+
+        local msg = @sprintf("A transform has been specified. Only supported optimisation for now is :gradientfree for now.\n")
+        
+        print(Crayon(foreground = :yellow, bold=true), msg, Crayon(reset = true))
+
+        gradientmode == :gradientfree
+
+    end
+
+    # Call actual algorithm
+
+    @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    # reportnumberofthreads()
+
+    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+
+end
 
 
-# function VIdiag(logp::Function, initgaussian::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function VIdiag(logp::Function, μ::Vector, σ::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
 
-#     VIdiag(logp, mean(initgaussian), diag(cov(initgaussian)); gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
+    @argcheck σ > 0  "σ must be ≥ 0"
 
-# end
+    Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
 
+    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, transform = transform)
 
-# function VIdiag(logp::Function, μ::Array{Array{Float64,1},1}, Σdiag = [0.1*ones(length(μ[1])) for _ in 1:length(μ)]; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100,  iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+end
 
-
-#     coreVIdiag(logp, μ, Σdiag; gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
-
-
-# end
 
 
 # #-----------------------------------#

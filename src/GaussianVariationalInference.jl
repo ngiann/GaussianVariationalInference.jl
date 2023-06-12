@@ -17,10 +17,11 @@ module GaussianVariationalInference
     include("VIfull.jl")
     include("entropy.jl")
        
-    # include("VIdiag.jl")
+    include("VIdiag.jl")
     # include("VIfixedcov.jl")
     # include("MVI.jl")
     # include("laplace.jl")
+    export VIdiag
      
     
     # Utilities
@@ -42,11 +43,13 @@ module GaussianVariationalInference
 
     include("Examples/verificationexample1.jl")
     include("Examples/verificationexample2.jl")
+    include("Examples/verificationexample2_diag.jl")
     include("Examples/verificationexample3.jl")
+    include("Examples/verificationexample3_diag.jl")
 
     export VI #, VIdiag, VIfixedcov, MVI, laplace
     
-    export exampleproblem1, exampleproblem2, verificationexample1, verificationexample2, verificationexample3
+    export exampleproblem1, exampleproblem2, verificationexample1, verificationexample2, verificationexample2_diag, verificationexample3, verificationexample3_diag
 
     # Re-export 
     export cov, mean, pdf, logpdf
