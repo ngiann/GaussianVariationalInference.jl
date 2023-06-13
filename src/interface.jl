@@ -59,6 +59,7 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
     # Call actual algorithm
 
     @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    
     reportnumberofthreads()
 
     coreVIfull(logp, μ, Croot; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
@@ -77,14 +78,6 @@ function VI(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ)
 end
 
 
-# function VI(logp::Function, initgaussian::AbstractMvNormal; gradlogp = defaultgradient(mean(initgaussian)), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int = 1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1,  test_every::Int = -1)
-
-#     VI(logp, mean(initgaussian), cov(initgaussian); gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
-
-# end
-
-
-
 
 #-----------------------------------#
 # Call mean field                   #
@@ -99,15 +92,15 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
     @argcheck length(Cdiag) == length(μ)  "Cdiag must be a vector the of same length as mean μ"   
     
 
-    # if transform !== identity
+    if transform !== identity
         
-    #     local msg = @sprintf("A transform has been specified. Only supported optimisation for now is :gradientfree for now.\n")
+        local msg = @sprintf("A transform has been specified.\n")
         
-    #     print(Crayon(foreground = :yellow, bold=true), msg, Crayon(reset = true))
+        print(Crayon(foreground = :white, bold=true), msg, Crayon(reset = true))
         
-    #     gradientmode == :gradientfree
+        gradientmode == :gradientfree
         
-    # end
+    end
 
 
     # pick optimiser and (re)define gradient of logp
@@ -118,6 +111,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
     # Call actual algorithm
 
     @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    
     reportnumberofthreads()
 
     coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
@@ -125,7 +119,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
 end
 
 
-function VIdiag(logp::Function, μ::Vector, σ::Float64 = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
+function VIdiag(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
 
     @argcheck σ > 0  "σ must be ≥ 0"
 
@@ -135,16 +129,6 @@ function VIdiag(logp::Function, μ::Vector, σ::Float64 = 0.1; gradlogp = defaul
 
 end
 
-
-# #-----------------------------------#
-# # Call VI with spherical covariance #
-# #-----------------------------------#
-
-# function VIfixedcov(logp::Function, μ::Array{Float64,1}, fixedC::Array{Float64,2}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0, adaptvariance = 1)
-
-#     coreVIfixedcov(logp, μ, fixedC, gradlogp = gradlogp, seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations = inititerations, adaptvariance = adaptvariance)
-
-# end
 
 
 # #-----------------------------------#
@@ -212,6 +196,7 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradie
     # Call actual algorithm
 
     @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+    
     reportnumberofthreads()
 
     coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
@@ -237,7 +222,15 @@ end
 
 
 function reportnumberofthreads()
+    
     if Threads.nthreads() > 1
-        @printf("\t Number of available threads is %d\n", Threads.nthreads())
-    end    
+    
+        @printf("\tNumber of available threads is %d\n", Threads.nthreads())
+    
+    else
+
+        @printf("\tRunning on single thread.\n")
+
+    end
+
 end
