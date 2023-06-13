@@ -1,7 +1,7 @@
 """
 # Basic use:
 
-    q, logev, Croot = VI(logp, μ, σ²=0.1; S = 100, iterations = 1, show_every = -1)
+    q, logev, Croot = VI(logp, μ, σ=0.1; S = 100, iterations = 1, show_every = -1)
 
 Returns approximate Gaussian posterior and log evidence.
 
@@ -12,7 +12,7 @@ A description of only the most basic arguments follows.
 
 - `logp` is a function that expresses the (unnormalised) log-posterior, i.e. joint log-likelihood.
 - `μ` is the initial mean of the approximating Gaussian posterior.
-- `σ²` specifies the initial covariance of the approximating Gaussian posterior as σ² * I . Default value is `0.1`.
+- `σ` specifies the initial covariance of the approximating Gaussian posterior as σ² * I . Default value is `√0.1`.
 - `S` is the number of drawn samples that approximate the lower bound integral.
 - `iterations` specifies for how many iterations to run optimisation on the lower bound (elbo).
 - `show_every`: report progress every `show_every` number of iterations. If set to value smaller than `1`, then no progress will be reported.
@@ -67,7 +67,7 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
 end
 
 
-function VI(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
+function VI(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
 
     @argcheck σ > 0    "σ must be ≥ 0"
 
@@ -119,7 +119,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
 end
 
 
-function VIdiag(logp::Function, μ::Vector, σ = 0.1; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
+function VIdiag(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
 
     @argcheck σ > 0  "σ must be ≥ 0"
 
