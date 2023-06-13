@@ -46,7 +46,7 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
 
     checkcommonarguments(seed, iterations, S, Stest, μ)
 
-    @argcheck size(Croot, 1) == size(Croot, 2)        "Croot must be a square matrix"
+    @argcheck size(Croot, 1) == size(Croot, 2)                "Croot must be a square matrix"
     
     @argcheck length(μ)  == size(Croot, 1)  == size(Croot, 2) "dimensions of μ do not agree with dimensions of Croot"
     
@@ -183,7 +183,7 @@ function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradie
 
     checkcommonarguments(seed, iterations, S, Stest, μ) 
        
-    @argcheck size(C, 1) == size(C, 2)  "C must be a square matrix"
+    @argcheck size(C, 1) == size(C, 2)                "C must be a square matrix"
     
     @argcheck length(μ)  == size(C, 1)  == size(C, 2) "dimensions of μ do not agree with dimensions of C"
     
