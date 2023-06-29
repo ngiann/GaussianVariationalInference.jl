@@ -35,6 +35,7 @@ module GaussianVariationalInference
     include("util/verifygradient.jl")
     include("util/RecordELBOProgress.jl")
     include("util/first_second_derivative.jl")
+    include("util/transformnormal.jl")
 
 
     # Verification
@@ -50,7 +51,7 @@ module GaussianVariationalInference
 
     export VI, VIdiag#, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
     
-    export exampleproblem1, exampleproblem2
+    export exampleproblem1, exampleproblem2, transformnormal
 
     export logdet_derivation
 
