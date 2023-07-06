@@ -17,9 +17,9 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
 
     jac_transform = transform == identity ? ones(D) : x -> firstderivative.(transform, x)
     
-    firstderivativetransform  = transform == identity ? ones(D)  : firstderivativefunction(transform)
+    firstderivativetransform  = transform == identity ? x -> one(eltype(x))  : firstderivativefunction(transform)
 
-    secondderivativetransform = transform == identity ? zeros(D) : secondderivativefunction(transform)
+    secondderivativetransform = transform == identity ? x -> zero(eltype(x)) : secondderivativefunction(transform)
 
 
     #----------------------------------------------------
