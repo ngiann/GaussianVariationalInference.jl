@@ -1,4 +1,4 @@
-function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, parallelmode = parallelmode, transform = transform)
 
     D = length(μ₀)
 
@@ -85,15 +85,15 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
         
         if transform !== identity
             
-            auxentropy = z -> sum(log.(abs.(jac_transform.(makeparam(μ, Cdiag, z)))))
+            auxentropy = z -> sum(log.(abs.(jac_transform.(makeparam(μ, Cdiag, z))))) 
 
-            ℋ += Transducers.foldxt(+, Map(auxentropy),  Z) / length(Z) 
+            ℋ += evaluatesamples(auxentropy, Z, Val(parallelmode))
             
         end
   
         local auxexpectedlogl = z -> logp(transform(makeparam(μ, Cdiag, z)))
 
-        local Elogl = Transducers.foldxt(+, Map(auxexpectedlogl),  Z) / length(Z)
+        local Elogl = evaluatesamples(auxexpectedlogl, Z, Val(parallelmode))
         
         return Elogl + ℋ
 
@@ -121,7 +121,7 @@ function coreVIdiag(logp::Function, μ₀::Vector, C₀diag::Vector; gradlogp = 
        
         local aux = z -> partial_elbo_grad(μ, Cdiag, z)
         
-        local gradμCdiag = Transducers.foldxt(+, Map(aux), Z) / length(Z)
+        local gradμCdiag = evaluatesamples(aux, Z, Val(parallelmode))
 
         # entropy contribution to covariance
 

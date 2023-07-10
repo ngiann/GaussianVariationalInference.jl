@@ -18,7 +18,7 @@ module GaussianVariationalInference
     include("VIdiag.jl")
     include("VIrank1.jl")
     include("entropy.jl")
-       
+    include("evaluatesamples.jl")
     # include("VIdiag.jl")
     # include("VIfixedcov.jl")
     # include("MVI.jl")
