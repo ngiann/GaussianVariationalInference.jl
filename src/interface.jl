@@ -109,6 +109,10 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
 
     optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
+    # Create out of the parallel argument a new argument of type symbol that is either :parallel or :serial
+    # We use this internally to dispatch on value
+    parallelmode = parallel ? :parallel : :serial
+
 
     # Call actual algorithm
 
@@ -116,7 +120,7 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
     
     parallel ? reportnumberofthreads() : nothing
 
-    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, parallel = parallel, transform = transform)
+    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, parallelmode = parallelmode, transform = transform)
 
 end
 
@@ -129,7 +133,7 @@ function VIdiag(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgr
 
     Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
 
-    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallel = parallel, transform = transform)
+    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every,  parallel =  parallel, transform = transform)
 
 end
 
