@@ -79,11 +79,13 @@ end
 
 
 
-#-----------------------------------#
-# Call mean field                   #
-#-----------------------------------#
+#-----------------------------------------#
+# Call mean field, two definitions follow #
+#-----------------------------------------#
 
-function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
+# Definition 1, general case: User specifies diagonal covariance root for defining initial covariance matrix
+
+function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true, transform = identity)
 
     # check validity of arguments
 
@@ -112,20 +114,22 @@ function VIdiag(logp::Function, μ::Vector, Cdiag::Vector; gradlogp = defaultgra
 
     @printf("Running VI with diagonal covariance (mean field): seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
     
-    reportnumberofthreads()
+    parallel ? reportnumberofthreads() : nothing
 
-    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+    coreVIdiag(logp, μ, Cdiag; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, parallel = parallel, transform = transform)
 
 end
 
+# Definition 2, special case: User specifies standard deviation fot defining initial diagonal covariance matrix.
+#                             Calls definition 1.
 
-function VIdiag(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, transform = identity)
+function VIdiag(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true, transform = identity)
 
     @argcheck σ > 0  "σ must be ≥ 0"
 
     Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
 
-    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, transform = transform)
+    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallel = parallel, transform = transform)
 
 end
 
@@ -225,11 +229,11 @@ function reportnumberofthreads()
     
     if Threads.nthreads() > 1
     
-        @printf("\tNumber of available threads is %d\n", Threads.nthreads())
+        @printf("\tRunning on %d available threads\n", Threads.nthreads())
     
     else
 
-        @printf("\tRunning on single thread.\n")
+        @printf("\tRunning on single available thread. To use more threads start Julia with the option -t\n")
 
     end
 
