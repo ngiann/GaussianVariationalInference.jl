@@ -224,7 +224,7 @@ function checkcommonarguments(seed, iterations, S, Stest, μ)
     
     @argcheck Stest >= 0                "Stest must be ≥ 0"
     
-    @argcheck length(μ) >= 2            "VI works only for problems with two parameters and more"
+    @argcheck length(μ) >= 2            "VI works only for problems with two parameters or more"
    
 end
 
