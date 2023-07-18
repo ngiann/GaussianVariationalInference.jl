@@ -9,7 +9,7 @@ module GaussianVariationalInference
 
     using LinearAlgebra, Random, Optim, ForwardDiff, Distributions
 
-    using Zygote
+    using Zygote, ReverseDiff
     
     # Core code
     

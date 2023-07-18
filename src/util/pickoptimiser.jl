@@ -12,6 +12,22 @@ function pickoptimiser(μ, logp, gradlogp, gradientmode)
     
         return ConjugateGradient(), x -> Zygote.gradient(logp, x)[1]
 
+    elseif gradientmode == :reverse
+
+        compiled_f_tape = ReverseDiff.compile(ReverseDiff.GradientTape(logp, μ))
+
+        local storage = zeros(length(μ))
+
+        function helper(p)
+            
+            ReverseDiff.gradient!(storage, compiled_f_tape, p)
+
+            return storage
+
+        end
+   
+        return ConjugateGradient(), helper
+
     elseif gradientmode == :provided
 
         if any(isnan.(gradlogp(μ)))
