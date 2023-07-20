@@ -1,12 +1,15 @@
-function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S = 100, optimiser = Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, optimiser = Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, test_every = test_every)
 
-    D = length(mean(LAposteriors[1]))
-
-    @assert(D == size(cov(LAposteriors[1]), 1) == size(cov(LAposteriors[1]), 2))
+    D = length(μ₀)
 
 
+    #----------------------------------------------------
+    # perform laplace approximation
+    #----------------------------------------------------
 
-    @printf("Running MVI with S=%d, D=%d for %d iterations\n", S, D, iterations)
+    μLA, ΣLA = μ₀, get_covariance_at_mode(μ₀, x->-logp(x))
+
+    VLA, EsqrtLA = eigendecomposition(ΣLA)
 
 
     #----------------------------------------------------
@@ -14,8 +17,6 @@ function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S =
     #----------------------------------------------------
 
     Ztrain = generatelatentZ(S = S, D = D, seed = seed)
-
-    Ztest  = generatelatentZ(S = Stest, D = D, seed = seed+1)
 
 
     #----------------------------------------------------
@@ -34,138 +35,135 @@ function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S =
 
 
     #----------------------------------------------------
-    function minauxiliary(V, param)
+    function minauxiliary(param)
     #----------------------------------------------------
 
         local μ, Esqrt = unpack(param)
 
-        return -1.0 * elbo(μ, Esqrt, V, Ztrain)
+        local ℓ = elbo(μ, Esqrt, Ztrain)
+        
+        update!(trackELBO; newelbo = ℓ, μ = μ, C = Esqrt)
+
+        return -1.0 * ℓ
 
     end
 
 
     #----------------------------------------------------
-    function minauxiliary_grad(V, param)
+    function minauxiliary_grad(param)
     #----------------------------------------------------
 
         local μ, Esqrt = unpack(param)
 
-        return -1.0 * elbo_grad(μ, Esqrt, V, Ztrain)
+        return -1.0 * elbo_grad(μ, Esqrt, Ztrain)
 
     end
 
 
     #----------------------------------------------------
-    function getcov(V, Esqrt)
+    function getcov(Esqrt)
     #----------------------------------------------------
 
-        local aux = V * Diagonal(Esqrt)
+        local aux = VLA * Diagonal(Esqrt)
 
-        return aux*aux'
+        local Σ = aux*aux'
 
-    end
-
-    #----------------------------------------------------
-    function getcovroot(V, Esqrt)
-    #----------------------------------------------------
-
-        return V * Diagonal(Esqrt)
+        return (Σ + Σ') / 2
 
     end
 
 
     #----------------------------------------------------
-    function elbo(μ, Esqrt, V, Z)
+    function getcovroot(Esqrt)
     #----------------------------------------------------
 
-        local C = getcovroot(V, Esqrt)
-
-        mean(map(z -> logl(makeparameter(μ, C, z), Z))) + ApproximateVI.entropy(Esqrt)
+        VLA * Diagonal(Esqrt)
 
     end
 
 
     #----------------------------------------------------
-    function elbo_grad(μ, Esqrt, V, Z)
+    function elbo(μ, Esqrt, Z)
     #----------------------------------------------------
 
-        local grad_μ     = zeros(D)
+        local C = getcovroot(Esqrt)
 
-        local grad_Esqrt = zeros(D)
+        local aux = z -> logp(makeparameter(μ, C, z))
 
-        local C          = getcovroot(V, Esqrt)
-
-        local S          = length(Z)
-
-        for i=1:S
-
-            local aux = gradlogl(μ .+ C * Z[i])
-
-            grad_μ += aux / S
-
-            grad_Esqrt .+= V' * aux .* Z[i] / S
-
-        end
-
-        # logdet contribution in entropy
-
-        grad_Esqrt .+= 1.0./Esqrt
-
-        return [grad_μ; grad_Esqrt]
+        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + entropy(Esqrt)
 
     end
 
-    gradhelper(V, storage, param) = copyto!(storage, minauxiliary_grad(V, param))
+   
+    #----------------------------------------------------
+    function partial_elbo_grad(μ, C, z)
+    #----------------------------------------------------
+
+        local g = gradlogp(makeparameter(μ, C, z))
+
+        [g;  VLA' * g .* z]
+
+    end
 
 
     #----------------------------------------------------
+    function elbo_grad(μ, Esqrt, Z)
+    #----------------------------------------------------
+
+        local C = getcovroot(Esqrt)
+
+        
+        # contribution of joint log-likelihood
+
+        local aux = z -> partial_elbo_grad(μ, C, z)
+        
+        local gradμEsqrt = Transducers.foldxt(+, Map(aux), Z) / length(Z)
+
+
+        # entropy contribution
+
+        gradμEsqrt[D+1:2*D] += 1.0./Esqrt
+
+        return gradμEsqrt
+
+    end
+
+
+    gradhelper(storage, param) = copyto!(storage, minauxiliary_grad(param))
+
+
+    #----------------------------------------------------
+    # Define callback function called at each iteration
+    #----------------------------------------------------
+
+    # We want to keep track of the best variational 
+    # parameters encountered during the optimisation of
+    # the elbo. Unfortunately, the otherwise superb
+    # package Optim.jl does not provide a consistent way
+    # accross different optimisers to do this.
+
+    
+    trackELBO = RecordELBOProgress(; μ = zeros(D), C = zeros(D), 
+                                     Stest = Stest,
+                                     show_every = show_every,
+                                     test_every = test_every, 
+                                     elbo = elbo, seed = seed)
+    
+     #----------------------------------------------------
     # Numerically verify gradient
     #----------------------------------------------------
 
-    if numerical_verification
-
-        local V, Esqrt = eigendecomposition(cov(LAposteriors[1]))
-        adgrad = ForwardDiff.gradient(x->minauxiliary(V, x), [mean(LAposteriors[1]); Esqrt])
-        angrad = minauxiliary_grad(V, [mean(LAposteriors[1]); Esqrt])
-        @printf("gradient from AD vs analytical gradient\n")
-        display([vec(adgrad) vec(angrad)])
-        @printf("maximum absolute difference is %f\n", maximum(abs.(vec(adgrad) - vec(angrad))))
-
-    end
-
-
-    #----------------------------------------------------
-    # Evaluate initial solutions for few iterations
-    #----------------------------------------------------
-
-    function initoptimise(q)
-
-        local V, Esqrt = eigendecomposition(cov(q))
-
-        Optim.optimize(x->minauxiliary(V,x), (x1,x2)->gradhelper(V,x1,x2), [mean(q); Esqrt], optimiser, Optim.Options(iterations = inititerations))
-
-    end
-
-    results = if inititerations > 0
-        @showprogress "Initial search with random start " map(initoptimise, LAposteriors)
-    else
-        map(initoptimise, LAposteriors)
-    end
-
-    bestindex = argmin(map(r -> r.minimum, results))
-
-    bestinitialsolution = results[bestindex].minimizer
-
-    V, Esqrt = eigendecomposition(cov(LAposteriors[bestindex]))
+    numerical_verification ? verifygradient(μ₀, EsqrtLA, elbo, minauxiliary_grad, unpack, Ztrain) : nothing
+ 
 
 
     #----------------------------------------------------
     # Call optimiser
     #----------------------------------------------------
 
-    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = true, show_every=show_every, iterations = iterations, g_tol = 1e-6)
+    options = Optim.Options(extended_trace = false, store_trace = false, show_trace = false, show_every=show_every, iterations = iterations, g_tol = 1e-6, callback = trackELBO)
 
-    result  = Optim.optimize(x->minauxiliary(V, x), (x1,x2)->gradhelper(V,x1,x2), bestinitialsolution, optimiser, options)
+    result  = Optim.optimize(minauxiliary, gradhelper, [μLA ; EsqrtLA], optimiser, options)
 
     μopt, Esqrtopt = unpack(result.minimizer)
 
@@ -174,8 +172,8 @@ function coreMVI(logl::Function, gradlogl::Function, LAposteriors; seed = 1, S =
     # Return results
     #----------------------------------------------------
 
-    Σopt = getcov(V, Esqrtopt)
+    Σopt = getcov(Esqrtopt)
 
-    return MvNormal(μopt, Σopt), elbo(μopt, Esqrtopt, V, generatelatentZ(S = 10*S, D = D, seed = seed+2))
+    return MvNormal(μopt, Σopt), elbo(μopt, Esqrtopt, generatelatentZ(S = 10*S, D = D, seed = seed+2)), getcovroot(Esqrtopt)
 
 end
