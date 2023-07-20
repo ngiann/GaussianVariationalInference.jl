@@ -22,7 +22,7 @@ module GaussianVariationalInference
     # include("VIdiag.jl")
     # include("VIfixedcov.jl")
     include("MVI.jl")
-    include("laplace.jl")
+    include("util/laplace.jl")
      
     
     # Utilities
