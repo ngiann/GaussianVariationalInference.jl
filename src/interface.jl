@@ -160,26 +160,32 @@ end
 # # Call Mixed Variational Inference  #
 # #-----------------------------------#
 
-# function MVI(logp::Function, μ::Array{Float64,1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
+function MVI(logp::Function, μ::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification = false, Stest=0, show_every=-1, test_every::Int = -1, parallel::Bool = true)
 
-#     MVI(logp, [μ]; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, laplaceiterations=laplaceiterations, iterations=iterations, numerical_verification = numerical_verification, Stest=Stest, show_every=show_every, inititerations=inititerations)
+    
+    # check validity of arguments
+    
+    checkcommonarguments(seed, iterations, S, Stest, μ) 
+    
+    # pick optimiser and (re)define gradient of logp
+    
+    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
+    
+    # Create out of the parallel argument a new argument of type symbol that is either :parallel or :serial
+    # We use this internally to dispatch on value
+    parallelmode = parallel ? :parallel : :serial
+    
+    # Call actual algorithm
 
-# end
+    @printf("Running MVI with S=%d, D=%d for %d iterations\n", S, length(μ), iterations)
+
+    parallel ? reportnumberofthreads() : nothing
+
+    coreMVI(logp, gradlogp, μ; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallelmode = parallelmode)
+
+end
 
 
-# function MVI(logp::Function, μ::Array{Array{Float64,1},1}; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000,  seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-#     LAposteriors = laplace(logp, μ; gradlogp = gradlogp, optimiser=optimiser, iterations=laplaceiterations, show_every=show_every)
-
-#     coreMVI(logp, gradlogp, LAposteriors; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
-
-# end
-
-# function MVI(logp::Function, LAposterior::MvNormal; gradlogp = x -> ForwardDiff.gradient(logp, x), optimiser=Optim.LBFGS(), laplaceiterations=10_000, seed = 1, S = 100, iterations=1, numerical_verification = false, Stest=0, show_every=-1, inititerations=0)
-
-#     coreMVI(logp, gradlogp, [LAposterior]; seed = seed, S = S, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, inititerations=inititerations)
-
-# end
 
 
 
