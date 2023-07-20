@@ -1,4 +1,4 @@
-function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, optimiser = Optim.LBFGS(), iterations = 1, numerical_verification = false, Stest=0, show_every=-1, test_every = test_every)
+function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, optimiser = optimiser, iterations = 1, numerical_verification = false, Stest=0, show_every=-1, test_every = test_every, parallelmode = parallelmode)
 
     D = length(μ₀)
 
@@ -90,7 +90,7 @@ function coreMVI(logp::Function, gradlogp::Function, μ₀; seed = 1, S = 100, o
 
         local aux = z -> logp(makeparameter(μ, C, z))
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + entropy(Esqrt)
+        evaluatesamples(aux, Z, Val(parallelmode)) + entropy(Esqrt)
 
     end
 
