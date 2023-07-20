@@ -1,4 +1,4 @@
-function coreVIfull(logp::Function, μ₀::Vector{T}, C₀::Matrix{T}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every) where T
+function coreVIfull(logp::Function, μ₀::Vector{T}, C₀::Matrix{T}; gradlogp = gradlogp, seed = seed, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, parallelmode = parallelmode) where T
 
     D = length(μ₀)
 
@@ -78,9 +78,9 @@ function coreVIfull(logp::Function, μ₀::Vector{T}, C₀::Matrix{T}; gradlogp 
 
     function elbo(μ, C, Z)
 
-        local aux = z -> logp(makeparameter(μ, C, z))
+        local auxexpectedlogl = z -> logp(makeparameter(μ, C, z))
 
-        Transducers.foldxt(+, Map(aux),  Z) / length(Z) + GaussianVariationalInference.entropy(C)
+        evaluatesamples(auxexpectedlogl, Z, Val(parallelmode)) + GaussianVariationalInference.entropy(C)
 
     end
 
@@ -98,7 +98,7 @@ function coreVIfull(logp::Function, μ₀::Vector{T}, C₀::Matrix{T}; gradlogp 
        
         local aux = z -> partial_elbo_grad(μ, C, z)
         
-        local gradμC = Transducers.foldxt(+, Map(aux), Z) / length(Z)
+        local gradμC = evaluatesamples(aux, Z, Val(parallelmode))
 
         # entropy contribution to covariance
 
