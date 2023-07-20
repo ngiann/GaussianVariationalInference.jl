@@ -38,11 +38,11 @@ function coreLaplace(w0::Vector, logposterior::Function, gradlogposterior::Funct
         nothing
    end
 
-   #  # find mode μ, we are *minimising*
-   #  μ = Optim.optimize(negative_logposterior, negative_logposterior_gradient!, w0, LBFGS(),
-   #          Optim.Options(iterations=100_000, show_trace=show_trace, g_tol=1e-6)).minimizer
+    # find mode μ, we are *minimising*
+    μ = Optim.optimize(negative_logposterior, negative_logposterior_gradient!, w0, LBFGS(),
+            Optim.Options(iterations=100_000, show_trace=show_trace, g_tol=1e-6)).minimizer
 
-   μ = mean(VIdiag(logposterior, w0; S = 1000, iterations=1000, show_every=10, gradientmode=:provided, gradlogp = gradlogposterior)[1])
+   # μ = mean(VIdiag(logposterior, w0; S = 1000, iterations=1000, show_every=10, gradientmode=:provided, gradlogp = gradlogposterior)[1])
 
 
     # Covariance of Gaussian posterior at mode μ is the inverse of Hessian
