@@ -184,32 +184,32 @@ end
 
 
 
-function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+# function VIrank1(logp::Function, μ::Vector, C::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, transform = identity, seed::Int = 1, seedtest::Int = 2, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
 
 
-    # check validity of arguments
+#     # check validity of arguments
 
-    checkcommonarguments(seed, iterations, S, Stest, μ) 
+#     checkcommonarguments(seed, iterations, S, Stest, μ) 
        
-    @argcheck size(C, 1) == size(C, 2)                "C must be a square matrix"
+#     @argcheck size(C, 1) == size(C, 2)                "C must be a square matrix"
     
-    @argcheck length(μ)  == size(C, 1)  == size(C, 2) "dimensions of μ do not agree with dimensions of C"
+#     @argcheck length(μ)  == size(C, 1)  == size(C, 2) "dimensions of μ do not agree with dimensions of C"
     
 
-    # pick optimiser and (re)define gradient of logp
+#     # pick optimiser and (re)define gradient of logp
 
-    optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
+#     optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
 
-    # Call actual algorithm
+#     # Call actual algorithm
 
-    @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
+#     @printf("Running VIrank1: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
     
-    reportnumberofthreads()
+#     reportnumberofthreads()
 
-    coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
+#     coreVIrank1(logp, μ, C; gradlogp = gradlogp, seed = seed, seedtest = seedtest+1000, S = S, test_every = test_every, optimiser = optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, transform = transform)
 
-end
+# end
 
 
 function checkcommonarguments(seed, iterations, S, Stest, μ)

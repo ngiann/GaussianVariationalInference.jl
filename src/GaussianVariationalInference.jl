@@ -16,13 +16,13 @@ module GaussianVariationalInference
     include("interface.jl")
     include("VIfull.jl")
     include("VIdiag.jl")
-    include("VIrank1.jl")
+    # include("VIrank1.jl")
     include("entropy.jl")
     include("evaluatesamples.jl")
     # include("VIdiag.jl")
     # include("VIfixedcov.jl")
-    # include("MVI.jl")
-    # include("laplace.jl")
+    include("MVI.jl")
+    include("laplace.jl")
      
     
     # Utilities
@@ -49,11 +49,11 @@ module GaussianVariationalInference
 
     
 
-    export VI, VIdiag#, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
+    export VI, VIdiag, MVI, laplace#, VIrank1 #, VIdiag, VIfixedcov, MVI, laplace
     
     export exampleproblem1, exampleproblem2, transformnormal
 
-    export logdet_derivation
+    # export logdet_derivation
 
     # Re-export 
     export cov, mean, pdf, logpdf
