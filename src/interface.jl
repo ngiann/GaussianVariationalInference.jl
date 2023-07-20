@@ -8,7 +8,7 @@ Returns approximate Gaussian posterior and log evidence.
 
 # Arguments
 
-A description of only the most basic arguments follows.
+A description of only the most basic arguments follows. More details can be found in the documentation.
 
 - `logp` is a function that expresses the (unnormalised) log-posterior, i.e. joint log-likelihood.
 - `μ` is the initial mean of the approximating Gaussian posterior.
@@ -39,7 +39,10 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1)
+#
+# Definition 1, general case: User specifies diagonal covariance root for defining initial covariance matrix
+#
+function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true)
 
 
     # check validity of arguments
@@ -55,25 +58,31 @@ function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradien
 
     optimiser, gradlogp = pickoptimiser(μ, logp, gradlogp, gradientmode)
 
+    # Create out of the parallel argument a new argument of type symbol that is either :parallel or :serial
+    # We use this internally to dispatch on value
+    parallelmode = parallel ? :parallel : :serial
 
     # Call actual algorithm
 
     @printf("Running VI with full covariance: seed=%d, S=%d, Stest=%d, D=%d for %d iterations\n", seed, S, Stest, length(μ), iterations)
     
-    reportnumberofthreads()
+    parallel ? reportnumberofthreads() : nothing
 
-    coreVIfull(logp, μ, Croot; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    coreVIfull(logp, μ, Croot; gradlogp = gradlogp, seed = seed, S = S, optimiser=optimiser, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallelmode = parallelmode)
 
 end
 
 
-function VI(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1)
+# Definition 2, special case: User specifies standard deviation fot defining initial diagonal covariance matrix.
+#                             Calls definition 1
+
+function VI(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int=0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true)
 
     @argcheck σ > 0    "σ must be ≥ 0"
 
     Croot = Matrix(σ*I, length(μ), length(μ)) # initial covariance
 
-    VI(logp, μ, Croot; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every)
+    VI(logp, μ, Croot; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallel = parallel)
 
 end
 
@@ -127,13 +136,13 @@ end
 # Definition 2, special case: User specifies standard deviation fot defining initial diagonal covariance matrix.
 #                             Calls definition 1.
 
-function VIdiag(logp::Function, μ::Vector, σ = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true, transform = identity)
+function VIdiag(logp::Function, μ::Vector, σ::Real = sqrt(0.1); gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true, transform = identity)
 
     @argcheck σ > 0  "σ must be ≥ 0"
 
     Cdiag = σ*ones(length(μ)) # initial diagonal covariance as vector
 
-    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every,  parallel =  parallel, transform = transform)
+    VIdiag(logp, μ, Cdiag; gradlogp = gradlogp, gradientmode = gradientmode, seed = seed, S = S, iterations = iterations, numerical_verification = numerical_verification, Stest = Stest, show_every = show_every, test_every = test_every, parallel = parallel, transform = transform)
 
 end
 
@@ -156,9 +165,9 @@ end
 # end
 
 
-# #-----------------------------------#
-# # Call Mixed Variational Inference  #
-# #-----------------------------------#
+#-----------------------------------#
+# Call Mixed Variational Inference  #
+#-----------------------------------#
 
 function MVI(logp::Function, μ::Vector; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification = false, Stest=0, show_every=-1, test_every::Int = -1, parallel::Bool = true)
 
@@ -239,7 +248,7 @@ function reportnumberofthreads()
     
     if Threads.nthreads() > 1
     
-        @printf("\tRunning on %d available threads\n", Threads.nthreads())
+        @printf("\tRunning on %d available threads. For single thread run, set parallel = false.\n", Threads.nthreads())
     
     else
 
