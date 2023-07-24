@@ -1,7 +1,7 @@
 name = "GaussianVariationalInference"
 uuid = "f96f1e2a-1be0-483a-ac4e-37f33550e2cb"
 authors = ["Nikos Gianniotis <ngiann@gmail.com>"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
