@@ -51,7 +51,7 @@ A practical answer to diagnosing whether a sufficiently high number of samples `
 
 At each (or every few) iteration(s) we monitor the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)`` on the independent sample set ``Z^\prime``. If the variational parameters are not overadapting to the ``Z``, then we should see that as the lower bound ``\mathcal{L}_{(FS)}(\mu,C,Z)``  increases, the quantity ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  should also display a tendency to increase. If on the other hand the variational parameters are overadapting to 
 ``Z``, then though ``\mathcal{L}_{(FS)}(\mu,C,Z)`` is increasing, we
-will notice that ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  is actually deteriorating. This is a clear sign that a larger ``S`` is required.
+will notice that ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)``  is actually deteriorating. This is a clear sign that a larger ``S`` is required. In general, if ``S`` has been set sufficiently high, then the values of ``\mathcal{L}_{(FS)}(\mu,C,Z^\prime)`` should closely follow the values of ``\mathcal{L}_{(FS)}(\mu,C,Z)``.
 
 
 The described procedure is reminiscent of monitoring the generalisation performance of a learning algorithm on a validation set during training. A significant difference, however, is that while validation sets are typically of limited size, here we can set ``S^\prime`` arbitrarily large. In practice, one may experiment with such values as e.g. ``S^\prime = 2S`` or  ``S^\prime = 10S``. We emphasise that the samples in ``Z^\prime`` are not used to optimise ELBO.
@@ -62,7 +62,7 @@ The described procedure is reminiscent of monitoring the generalisation performa
 ## Relevant options in `VI`
 
 This package implements variational inference using the re-parametrisation trick.
-Contrary to other flavours of this method, that repeatedly draw ``S`` new samples ``z_s`` at each iteration of the optimiser, here we draw at the start  a large number ``S`` of samples ``z_s`` and keep them fixed throughout the execution of the algorithm[^1]. This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [LBFGS](https://julianlsolvers.github.io/Optim.jl/stable/#algo/lbfgs/). Using LBFGS, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of risking overfitting to the samples ``z_s`` that happened to be drawn at the start. Because of fixing the samples  ``z_s``, the algorithm doesn't not enjoy the same scalability as variational inference with stochastic gradient does. As a consequence, 
+Contrary to other flavours of this method, that repeatedly draw ``S`` new samples ``z_s`` at each iteration of the optimiser, here we draw at the start  a large number ``S`` of samples ``z_s`` and keep them fixed throughout the execution of the algorithm[^1]. This avoids the difficulty of working with a noisy gradient and allows the use of optimisers like [ConjugateGradient](https://julianlsolvers.github.io/Optim.jl/stable/#algo/cg). Using ConjugateGradient, does away with the typical requirement of tuning learning rates (step sizes). However, this comes at the expense of risking overfitting to the samples ``z_s`` that happened to be drawn at the start. Because of fixing the samples  ``z_s``, the algorithm doesn't not enjoy the same scalability as variational inference with stochastic gradient does. As a consequence, 
 the present package is recommented for problems with relatively few parameters, e.g. 2-20 parameters perhaps.
 
 
