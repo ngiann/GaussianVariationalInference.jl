@@ -39,9 +39,6 @@ julia> display(logev) # display negative log evidence
 ```
 
 """
-#
-# Definition 1, general case: User specifies diagonal covariance root for defining initial covariance matrix
-#
 function VI(logp::Function, μ::Vector, Croot::Matrix; gradlogp = defaultgradient(μ), gradientmode = :gradientfree, seed::Int = 1, S::Int = 100, iterations::Int=1, numerical_verification::Bool = false, Stest::Int = 0, show_every::Int = -1, test_every::Int = -1, parallel::Bool = true)
 
 
