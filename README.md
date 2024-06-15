@@ -3,6 +3,8 @@
 <img src="https://github.com/ngiann/GaussianVariationalInference.jl/blob/4d604d2f42f74c97a84685ddf13e0a9d05ff76e7/docs/src/assets/logo.png" width="192" height="144">
 </p>
 
+*Deterministic variational inference in Julia.*
+
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Documentation](https://img.shields.io/badge/docs-master-blue.svg)](https://ngiann.github.io/GaussianVariationalInference.jl)
 ![GitHub](https://img.shields.io/github/license/ngiann/GaussianVariationalInference.jl)
